@@ -40,8 +40,12 @@ class Pawn(Piece):
 class Rook(Piece): 
     def __init__(self, location, isWhite):
         super().__init__(location, isWhite)   
-        self.value = 1
-        self.type = 'r'
+        self.value = 5
+        if isWhite: 
+            self.type = "♜"
+        else: 
+            self.type = "♖"
+        
 
 
 
@@ -53,7 +57,9 @@ bp1 = Pawn((1, 2), False)
 bp2 = Pawn((3, 5), False)
 p2 = Pawn((2, 4), True)
 p3 = Pawn((4, 4), True)
-pieces = [p1, bp1, bp2, p2, p3]
+
+r1 = Rook((1, 5), True)
+pieces = [p1, bp1, bp2, p2, p3, r1]
 
 
 
@@ -61,7 +67,9 @@ pieces = [p1, bp1, bp2, p2, p3]
 
 
 
-#Check if a sqaure is empty and possible in the board
+
+#Check if a square is empty and possible in the board. 
+# 1: its empty; -2: its occupied by a piece of the same color; -1: occupied by an enemy piece
 def check(square, isWhite):
 
 
@@ -81,6 +89,60 @@ def check(square, isWhite):
 
     return 1
 
+
+
+
+
+def rook_possible_moves(rook):
+    #I dont think this is the cleanest or most optimized, but it works :)
+    possible = [] 
+
+    #checking x direction, right
+    for i in range(1, 8): 
+        if check(((rook.location[0] + i), rook.location[1]), rook.isWhite) == 1:
+            possible.append(((rook.location[0] + i), rook.location[1]))
+        elif check(((rook.location[0] + i), rook.location[1]), rook.isWhite) == -1:
+            possible.append(((rook.location[0] + i), rook.location[1]))
+            break
+        else:
+            break
+        
+    #checking x direction, right    
+    for i in range(1, 8): 
+        if check(((rook.location[0] - i), rook.location[1]), rook.isWhite) == 1:
+            possible.append(((rook.location[0] - i), rook.location[1]))
+        elif check(((rook.location[0] - i), rook.location[1]), rook.isWhite) == -1:
+            possible.append(((rook.location[0] - i), rook.location[1]))
+            break
+        else:
+            break
+        
+    #checking y direction, up 
+    for i in range(1, 8): 
+        if check((rook.location[0], (rook.location[1] + i)), rook.isWhite) == 1:
+            possible.append(((rook.location[0]), (rook.location[1] + i)))
+        elif check(((rook.location[0]), rook.location[1] + i), rook.isWhite) == -1:
+            possible.append(((rook.location[0]), (rook.location[1] + i)))
+            break
+        else:
+            break
+        
+     #checking y direction, down
+    for i in range(1, 8): 
+        if check(((rook.location[0]), rook.location[1] - i), rook.isWhite) == 1:
+            possible.append(((rook.location[0]), (rook.location[1] - i)))
+        elif check(((rook.location[0]), rook.location[1] - i), rook.isWhite) == -1:
+            possible.append(((rook.location[0]), (rook.location[1] - i)))
+            break
+        else:
+            break
+    return possible        
+            
+    
+            
+        
+        
+        
 
 
 
@@ -145,7 +207,6 @@ draw(pieces)
                     
 
     
-    
 
 
 print(f"White pawn possible moves: {pawn_possible_moves(p1)}")
@@ -153,6 +214,8 @@ print(f"Black pawn possible moves: {pawn_possible_moves(bp1)}")
 print(f"Bp2: {pawn_possible_moves(bp2)}")
 print(f"p2: {pawn_possible_moves(p2)}")
 print(f"p3 {pawn_possible_moves(p3)}")
+print(f"r1 {rook_possible_moves(r1)}")
+print(f"len {len(rook_possible_moves(r1))}")
 
 
 
@@ -160,8 +223,6 @@ print(f"p3 {pawn_possible_moves(p3)}")
 
 
 
-
-    
     
 
 
