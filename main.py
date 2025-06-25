@@ -87,8 +87,9 @@ p3 = Pawn((4, 4), True)
 r1 = Rook((1, 5), True)
 k1 = Knight((5, 6), False)
 king = King((7, 7), False)
+b1 = Bishop((5, 2), True)
 
-pieces = [p1, bp1, bp2, p2, p3, r1, k1, king]
+pieces = [p1, bp1, bp2, p2, p3, r1, k1, king, b1]
 
 
 
@@ -148,49 +149,64 @@ def king_possible_moves(king):
 
 
 def bishop_possible_moves(bishop):
-    #I dont think this is the cleanest or most optimized, but it works :)
     possible = [] 
 
-    #checking x direction, right
-    for i in range(1, 8): 
-        if check(((rook.location[0] + i), rook.location[1]), rook.isWhite) == 1:
-            possible.append(((rook.location[0] + i), rook.location[1]))
-        elif check(((rook.location[0] + i), rook.location[1]), rook.isWhite) == -1:
-            possible.append(((rook.location[0] + i), rook.location[1]))
+
+    #checking right up
+    for i in range(1, 7):
+        move =  ((bishop.location[0] + i), (bishop.location[1]+ i))
+        conditional = check(move, bishop.isWhite)
+        if conditional == 1:
+            possible.append(move)
+        elif conditional == -1:
+            possible.append(move)
             break
         else:
             break
         
-    #checking x direction, right    
-    for i in range(1, 8): 
-        if check(((rook.location[0] - i), rook.location[1]), rook.isWhite) == 1:
-            possible.append(((rook.location[0] - i), rook.location[1]))
-        elif check(((rook.location[0] - i), rook.location[1]), rook.isWhite) == -1:
-            possible.append(((rook.location[0] - i), rook.location[1]))
+    #checking left up
+    for i in range(1, 7):
+        move =  ((bishop.location[0] - i), bishop.location[1] + i)
+        conditional = check(move, bishop.isWhite)
+        if conditional == 1:
+            possible.append(move)
+        elif conditional == -1:
+            possible.append(move)
             break
         else:
-            break
+            break   
+   
         
-    #checking y direction, up 
-    for i in range(1, 8): 
-        if check((rook.location[0], (rook.location[1] + i)), rook.isWhite) == 1:
-            possible.append(((rook.location[0]), (rook.location[1] + i)))
-        elif check(((rook.location[0]), rook.location[1] + i), rook.isWhite) == -1:
-            possible.append(((rook.location[0]), (rook.location[1] + i)))
+    #checking right down
+    for i in range(1, 7):
+        move =  ((bishop.location[0] + i), (bishop.location[1] - i))
+        conditional = check(move, bishop.isWhite)
+        if conditional == 1:
+            possible.append(move)
+        elif conditional == -1:
+            possible.append(move)
             break
         else:
             break
+   
         
-     #checking y direction, down
-    for i in range(1, 8): 
-        if check(((rook.location[0]), rook.location[1] - i), rook.isWhite) == 1:
-            possible.append(((rook.location[0]), (rook.location[1] - i)))
-        elif check(((rook.location[0]), rook.location[1] - i), rook.isWhite) == -1:
-            possible.append(((rook.location[0]), (rook.location[1] - i)))
+     #checking left down
+    for i in range(1, 7):
+        move =  ((bishop.location[0] -i ), (bishop.location[1] - i))
+        conditional = check(move, bishop.isWhite)
+        if conditional == 1:
+            possible.append(move)
+        elif conditional == -1:
+            possible.append(move)
             break
         else:
             break
+    
     return possible        
+            
+    
+            
+       
             
     
 
@@ -293,6 +309,7 @@ def pawn_possible_moves(pawn):
     return possible
 
 
+
 def draw(pieces): 
     board = []
     for i in range(8):
@@ -305,6 +322,7 @@ def draw(pieces):
     
 
     #Now, draw:
+    print("   0  1  2  3  4  5  6  7 ")
     for i in range(7, -1, -1):
         stringy = ""
         for j in range(8):
@@ -319,20 +337,13 @@ def draw(pieces):
 draw(pieces)
 
 
+print(len(bishop_possible_moves(b1)))
+print(bishop_possible_moves(b1))
                     
 
     
 
 
-print(f"White pawn possible moves: {pawn_possible_moves(p1)}")
-print(f"Black pawn possible moves: {pawn_possible_moves(bp1)}")
-print(f"Bp2: {pawn_possible_moves(bp2)}")
-print(f"p2: {pawn_possible_moves(p2)}")
-print(f"KING {king_possible_moves(king)}")
-print(f"k1 {knight_possible_moves(k1)}")
-print(f"len {len(knight_possible_moves(k1))}")
-print(f"len {len(rook_possible_moves(r1))}")
-print(f"rook {rook_possible_moves(r1)}")
 
 
 
