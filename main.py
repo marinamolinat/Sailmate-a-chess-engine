@@ -6,7 +6,8 @@
 #Possibly use vector math 
 
 # Also, ♟ is going to be white cause it makes more sense for me, taking into acccount my use of darkmode. I might change this later.
-
+import random
+import time
 
 class Piece():
 
@@ -15,6 +16,30 @@ class Piece():
         self.location = location 
         self.isWhite = isWhite
         self.type = None
+
+    #Check if a square is empty and possible in the board. 
+    # 1: its empty; -2: its occupied by a piece of the same color; -1: occupied by an enemy piece
+    def check(self, square, pieces):
+
+        #Check if a square is in bounds
+        if not (square[0] <= 7 and square[0] >= 0 and square[1] <= 7 and square[1] >= 0):
+            return 0
+
+        #Check if the square is empty
+        for piece in pieces: 
+            if piece.location == square:
+                if self.isWhite == piece.isWhite:
+                    return -2
+                else: 
+                    return -1                
+
+        return 1    
+        
+    def possible_moves(self, pieces):
+        raise NotImplementedError("Must be implemented by the subclass") 
+    
+   
+       
 
 
 
@@ -32,6 +57,38 @@ class Pawn(Piece):
             self.type = "♟"
         else: 
             self.type = "♙"
+    def possible_moves(self, pieces):
+        possible = [] 
+        direction = 1
+
+        if not self.isWhite:
+            direction = -1
+        
+        #Check y+1
+        move = ((self.location[0]), (self.location[1] + direction))
+        if self.check(move, pieces) == 1:
+            possible.append(move)
+
+        #Check y+2
+        if not self.hasMoved:
+            move = ((self.location[0]), (self.location[1] + direction*2))
+            if self.check(move, pieces) == 1:
+                possible.append(move)
+    
+        
+
+        #Check diagonal capturing, towards right
+        move = (self.location[0] + 1 , self.location[1] + direction)
+        if self.check(move, pieces) == -1:
+            possible.append(move)
+        
+        #Check diagonal capturing, towards left
+        move = (self.location[0] - 1 , self.location[1] + direction)
+        if self.check(move, pieces) == -1:
+            possible.append(move)
+    
+        return possible
+            
 
 
 class Knight(Piece): 
@@ -40,7 +97,18 @@ class Knight(Piece):
         if isWhite: 
             self.type = "♞"
         else: 
-            self.type = "♘"      
+            self.type = "♘"   
+    def possible_moves(self, pieces):
+        possible = []
+        map = [(2, 1),(-2, 1), (2, -1), (-2, -1), (1, 2), (-1, 2), (1, -2), (-1, -2)]
+        for i in map:
+            move = ((self.location[0] + i[0]), (self.location[1] + i[1]))
+            conditional = self.check(move, pieces)
+            if conditional == 1 or conditional == -1:
+                possible.append(move)
+
+        return possible
+                 
 
 
 
@@ -51,14 +119,44 @@ class Bishop(Piece):
             self.type = "♝"
         else: 
             self.type = "♗" 
+    def possible_moves(self, pieces):
+        possible = [] 
+
+        for i in [(1, 1), (1, -1), (-1, 1), (-1, -1)]:
+            for j in range(1, 7):
+                move =  ((self.location[0] + (j*i[0])), (self.location[1] + (j * i[1])))
+    
+                conditional = self.check(move, pieces)
+                if conditional == 1:
+                    possible.append(move)
+                elif conditional == -1:
+                    possible.append(move)
+                    break
+                else:
+                    break
+        return possible
+
+        
 
 class King(Piece):
-     def __init__(self, location, isWhite):
+    def __init__(self, location, isWhite):
         super().__init__(location, isWhite)
         if isWhite: 
             self.type = "♚"
         else: 
             self.type = "♔"      
+    def possible_moves(self, pieces):
+        #Really shitty king that doesnt understand that can put itself into checkmate
+
+        possible = []
+        map = [(0, 1),(0, -1), (1, 1), (1, -1), (-1, 1), (-1, -1), (1, 0), (-1, 0)]
+        for i in map:
+            move = ((self.location[0] + i[0]), (self.location[1] + i[1]))
+            conditional = self.check(move, pieces)
+            if conditional == 1 or conditional == -1:
+                possible.append(move)
+
+        return possible
 
 class Queen(Piece): 
     def __init__(self, location, isWhite):
@@ -67,6 +165,38 @@ class Queen(Piece):
             self.type = "♛"
         else: 
             self.type = "♕"
+    def possible_moves(self, pieces):
+        # This just borrows code from the rook and bishop
+
+        possible = []
+
+        #Bishop code
+        for i in [(1, 1), (1, -1), (-1, 1), (-1, -1)]:
+            for j in range(1, 8):
+                move =  ((self.location[0] + (j*i[0])), (self.location[1] + (j * i[1])))
+   
+                conditional = self.check(move, pieces)
+                if conditional == 1:
+                    possible.append(move)
+                elif conditional == -1:
+                    possible.append(move)
+                    break
+                else:
+                    break
+
+        #Rook code
+        for i in [(0, 1), (0, -1), (1, 0), (-1, 0)]:
+            for j in range(1, 8):
+                move =  ((self.location[0] + (j*i[0])), (self.location[1] + (j * i[1])))
+                conditional = self.check(move, pieces)
+                if conditional == 1:
+                    possible.append(move)
+                elif conditional == -1:
+                    possible.append(move)
+                    break
+                else:
+                    break
+        return possible
 
 
 
@@ -78,6 +208,22 @@ class Rook(Piece):
             self.type = "♜"
         else: 
             self.type = "♖"
+    def possible_moves(self, pieces):       
+        possible = [] 
+        for i in [(0, 1), (0, -1), (1, 0), (-1, 0)]:
+            for j in range(1, 8):
+                move =  ((self.location[0] + (j*i[0])), (self.location[1] + (j * i[1])))
+                conditional = self.check(move, pieces)
+                if conditional == 1:
+                    possible.append(move)
+                elif conditional == -1:
+                    possible.append(move)
+                    break
+                else:
+                    break
+        
+        return possible        
+                
         
 
 
@@ -101,225 +247,6 @@ queen2 = Queen((0, 6), False)
 
 
 pieces = [p1, bp1, bp2, p2, p3, r1, k1, king, b1, b2, queen, queen2]
-
-
-
-
-
-
-
-
-#Check if a square is empty and possible in the board. 
-# 1: its empty; -2: its occupied by a piece of the same color; -1: occupied by an enemy piece
-def check(square, isWhite):
-
-
-    #Check if a square is in bounds
-    if not (square[0] <= 7 and square[0] >= 0 and square[1] <= 7 and square[1] >= 0):
-        return 0
-
-
-
-    #Check if the square is empty
-    for piece in pieces: 
-        if piece.location == square:
-            if isWhite == piece.isWhite:
-                return -2
-            else: 
-                return -1                
-
-    return 1
-
-
-
-#Knight moves, quite more elegant than others
-def knight_possible_moves(knight):
-    possible = []
-    map = [(2, 1),(-2, 1), (2, -1), (-2, -1), (1, 2), (-1, 2), (1, -2), (-1, -2)]
-    for i in map:
-        move = ((knight.location[0] + i[0]), (knight.location[1] + i[1]))
-        conditional = check(move, knight.isWhite)
-        if conditional == 1 or conditional == -1:
-            possible.append(move)
-
-    return possible
-
-
-#Really shitty king that doesnt understand that it can be captured
-def king_possible_moves(king):
-    possible = []
-    map = [(0, 1),(0, -1), (1, 1), (1, -1), (-1, 1), (-1, -1), (1, 0), (-1, 0)]
-    for i in map:
-        move = ((king.location[0] + i[0]), (king.location[1] + i[1]))
-        conditional = check(move, king.isWhite)
-        if conditional == 1 or conditional == -1:
-            possible.append(move)
-
-    return possible
-
-
-
-def bishop_possible_moves(bishop):
-    possible = [] 
-
-
-    #checking right up
-    for i in range(1, 7):
-        move =  ((bishop.location[0] + i), (bishop.location[1]+ i))
-        conditional = check(move, bishop.isWhite)
-        if conditional == 1:
-            possible.append(move)
-        elif conditional == -1:
-            possible.append(move)
-            break
-        else:
-            break
-        
-    #checking left up
-    for i in range(1, 7):
-        move =  ((bishop.location[0] - i), bishop.location[1] + i)
-        conditional = check(move, bishop.isWhite)
-        if conditional == 1:
-            possible.append(move)
-        elif conditional == -1:
-            possible.append(move)
-            break
-        else:
-            break   
-   
-        
-    #checking right down
-    for i in range(1, 7):
-        move =  ((bishop.location[0] + i), (bishop.location[1] - i))
-        conditional = check(move, bishop.isWhite)
-        if conditional == 1:
-            possible.append(move)
-        elif conditional == -1:
-            possible.append(move)
-            break
-        else:
-            break
-   
-        
-     #checking left down
-    for i in range(1, 7):
-        move =  ((bishop.location[0] -i ), (bishop.location[1] - i))
-        conditional = check(move, bishop.isWhite)
-        if conditional == 1:
-            possible.append(move)
-        elif conditional == -1:
-            possible.append(move)
-            break
-        else:
-            break
-    
-    return possible        
-            
-    
-            
-       
-            
-
-
-
-def rook_possible_moves(rook):
-    #I dont think this is the cleanest or most optimized, but it works :)
-    possible = [] 
-
-
-    #checking x direction, right
-    for i in range(1, 8):
-        move =  ((rook.location[0] + i), rook.location[1])
-        conditional = check(move, rook.isWhite)
-        if conditional == 1:
-            possible.append(move)
-        elif conditional == -1:
-            possible.append(move)
-            break
-        else:
-            break
-        
-    #checking x direction, right 
-    for i in range(1, 8):
-        move =  ((rook.location[0] - i), rook.location[1])
-        conditional = check(move, rook.isWhite)
-        if conditional == 1:
-            possible.append(move)
-        elif conditional == -1:
-            possible.append(move)
-            break
-        else:
-            break   
-   
-        
-    #checking y direction, up 
-    for i in range(1, 8):
-        move =  ((rook.location[0]), rook.location[1] + i)
-        conditional = check(move, rook.isWhite)
-        if conditional == 1:
-            possible.append(move)
-        elif conditional == -1:
-            possible.append(move)
-            break
-        else:
-            break
-   
-        
-     #checking y direction, down
-    for i in range(1, 8):
-        move =  ((rook.location[0]), rook.location[1] - i)
-        conditional = check(move, rook.isWhite)
-        if conditional == 1:
-            possible.append(move)
-        elif conditional == -1:
-            possible.append(move)
-            break
-        else:
-            break
-    
-    return possible        
-            
-    
-            
-        
-        
-def queen_possible_moves(queen):
-    possible = bishop_possible_moves(queen) + rook_possible_moves(queen)
-    return possible    
-
-
-
-
-def pawn_possible_moves(pawn): 
-    #Going to hardcode some stuff, as this is a pawn. Might fix it later
-    possible = [] 
-
-    direction = 1
-
-    if not pawn.isWhite:
-        direction = -1
-
-
-    #Check y+1
-    if check((pawn.location[0], pawn.location[1] + direction), pawn.isWhite) == 1:
-        possible.append((pawn.location[0], pawn.location[1] + direction))
-    
-    #if pawn hasnt moved, check y+2
-    if not pawn.hasMoved: 
-        if check((pawn.location[0], pawn.location[1] + direction*2), pawn.isWhite) == 1:
-            possible.append((pawn.location[0], pawn.location[1] + direction*2))
-    
-
-    #Check diagonal capturing, towards right
-    if check((pawn.location[0] + 1 , pawn.location[1] + direction), pawn.isWhite) == -1:
-        possible.append((pawn.location[0] + 1 , pawn.location[1] + direction))
-    
-     #Check diagonal capturing, towards left
-    if check((pawn.location[0] - 1 , pawn.location[1] + direction), pawn.isWhite) == -1:
-        possible.append((pawn.location[0] + - 1, pawn.location[1] + direction))
-    
-    return possible
-
 
 
 def draw(pieces): 
@@ -348,17 +275,12 @@ def draw(pieces):
 
 draw(pieces)
 
-
-print(len(queen_possible_moves(queen)))
-print(queen_possible_moves(queen))
-                    
-print(len(queen_possible_moves(queen2)))
-print(queen_possible_moves(queen2))
-                    
-    
-
-
-
+for i in range(100):
+    time.sleep(5)
+    piece = random.choice(pieces)
+    move = random.choice(piece.possible_moves(pieces))
+    piece.location = move
+    draw(pieces)
 
 
 
@@ -366,7 +288,6 @@ print(queen_possible_moves(queen2))
 
 
     
-
 
 def evaluate(board):
-    pass #this will evaluate the board
+    pass #To come..
