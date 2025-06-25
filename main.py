@@ -6,44 +6,93 @@
 
 #For now, that the idea
 
+#Possibly use vector math 
+
 
 class Piece():
 
-    def __init__(self, location):
+    def __init__(self, location, isWhite):
         self.value = None
         self.map = []
         self.location = location 
+        self.isWhite = isWhite
 
 
 
 class Pawn(Piece):
-    def __init__(self, location):
-        super().__init__(location)   
+    def __init__(self, location, isWhite):
+        super().__init__(location, isWhite)   
         self.value = 1
-        self.hasmoved = False
+        self.hasMoved = False
         self.map = [(0, 1)]
-        self.map_notmoved = map.append((0, 2))
-
-
-
-
-
-
-p1 = Pawn((0, 1))
-
-pieces = {Pawn: (0, 1)}
-
-print(p1.value)
-def pawn_possible_moves(pawn): 
-    pawn.map
-    if not pawn.hasmoved:
-        pass
         
-    
-       
-    
+##Array of all pieces
+p1 = Pawn((0, 1), True)
+blackp = Pawn((1, 2), False)
+pieces = [p1, blackp]
 
 
+
+
+#Check if a sqaure is empty and possible in the board
+def check(square, isWhite):
+
+
+    #Check if a square is in bounds
+    if not (square[0] <= 8 and square[0] >= 0 and square[1] <= 8 and square[1] >= 0):
+        return 0
+
+
+
+    #Check if the square is empty
+    for piece in pieces: 
+        if piece.location == square:
+            if isWhite == piece.isWhite:
+                return -2
+            else: 
+                return -1                
+
+    return 1
+
+
+
+
+
+
+
+def pawn_possible_moves(pawn): 
+    #Going to hardcode some stuff, as this is a pawn. Might fix it later
+    possible = [] 
+    
+
+    #Check y+1
+    if check((pawn.location[0], pawn.location[1] + 1), pawn.isWhite) == 1:
+        possible.append((pawn.location[0], pawn.location[1] + 1))
+    
+    #if pawn hasnt moved, check y+2
+    if not pawn.hasMoved: 
+        if check((pawn.location[0], pawn.location[1] + 2), pawn.isWhite) == 1:
+            possible.append((pawn.location[0], pawn.location[1] + 2))
+    
+
+    #Check diagonal capturing, towards right
+    if check((pawn.location[0] + 1 , pawn.location[1] + 1), pawn.isWhite) == -1:
+        possible.append((pawn.location[0] + 1 , pawn.location[1] + 1))
+    
+     #Check diagonal capturing, towards right
+    if check((pawn.location[0] - 1 , pawn.location[1] - 1), pawn.isWhite) == -1:
+        possible.append((pawn.location[0] + -1, pawn.location[1] + 1))
+    
+    return possible
+
+print(pawn_possible_moves(p1))
+
+
+
+
+
+    
+    
 
 
 def evaluate(board):
