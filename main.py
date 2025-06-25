@@ -60,6 +60,13 @@ class King(Piece):
         else: 
             self.type = "♔"      
 
+class Queen(Piece): 
+    def __init__(self, location, isWhite):
+        super().__init__(location, isWhite)
+        if isWhite: 
+            self.type = "♛"
+        else: 
+            self.type = "♕"
 
 
 
@@ -88,8 +95,12 @@ r1 = Rook((1, 5), True)
 k1 = Knight((5, 6), False)
 king = King((7, 7), False)
 b1 = Bishop((5, 2), True)
+b2 = Bishop((2, 6), False)
+queen = Queen((3, 1), True)
+queen2 = Queen((0, 6), False)
 
-pieces = [p1, bp1, bp2, p2, p3, r1, k1, king, b1]
+
+pieces = [p1, bp1, bp2, p2, p3, r1, k1, king, b1, b2, queen, queen2]
 
 
 
@@ -208,7 +219,6 @@ def bishop_possible_moves(bishop):
             
        
             
-    
 
 
 
@@ -273,7 +283,9 @@ def rook_possible_moves(rook):
             
         
         
-        
+def queen_possible_moves(queen):
+    possible = bishop_possible_moves(queen) + rook_possible_moves(queen)
+    return possible    
 
 
 
@@ -337,10 +349,12 @@ def draw(pieces):
 draw(pieces)
 
 
-print(len(bishop_possible_moves(b1)))
-print(bishop_possible_moves(b1))
+print(len(queen_possible_moves(queen)))
+print(queen_possible_moves(queen))
                     
-
+print(len(queen_possible_moves(queen2)))
+print(queen_possible_moves(queen2))
+                    
     
 
 
