@@ -5,6 +5,8 @@
 
 #Possibly use vector math 
 
+# Also, ♟ is going to be white cause it makes more sense for me, taking into acccount my use of darkmode. I might change this later.
+
 
 class Piece():
 
@@ -12,6 +14,7 @@ class Piece():
         self.value = None
         self.location = location 
         self.isWhite = isWhite
+        self.type = None
 
 
 
@@ -20,10 +23,17 @@ class Pawn(Piece):
         super().__init__(location, isWhite)   
         self.value = 1
 
-        if location[1] == 1 and isWhite or location[1] == 6 and  not isWhite:
+        if location[1] == 1 and isWhite or location[1] == 6 and not isWhite:
             self.hasMoved = False
         else:
             self.hasMoved = True
+
+        if isWhite: 
+            self.type = "♟"
+        else: 
+            self.type = "♙"
+
+
 
 
 
@@ -31,6 +41,7 @@ class Rook(Piece):
     def __init__(self, location, isWhite):
         super().__init__(location, isWhite)   
         self.value = 1
+        self.type = 'r'
 
 
 
@@ -38,8 +49,12 @@ class Rook(Piece):
 ##Array of all pieces
 
 p1 = Pawn((0, 1), True)
-blackp = Pawn((1, 2), False)
-pieces = [p1, blackp]
+bp1 = Pawn((1, 2), False)
+bp2 = Pawn((3, 5), False)
+p2 = Pawn((2, 4), True)
+p3 = Pawn((4, 4), True)
+pieces = [p1, bp1, bp2, p2, p3]
+
 
 
 
@@ -100,8 +115,45 @@ def pawn_possible_moves(pawn):
     
     return possible
 
-print(pawn_possible_moves(p1))
-print(pawn_possible_moves(blackp))
+
+def draw(pieces): 
+    board = []
+    for i in range(8):
+        board.append([])
+        for j in range(8):
+            board[i].append("[ ]")
+            
+    for piece in pieces:
+        board[piece.location[0]][piece.location[1]] = f"[{piece.type}]"
+    
+
+    #Now, draw:
+    for i in range(7, -1, -1):
+        stringy = ""
+        for j in range(8):
+            stringy += board[j][i]
+        print(f"{i} " + stringy)
+    
+            
+            
+
+
+
+draw(pieces)
+
+
+                    
+
+    
+    
+
+
+print(f"White pawn possible moves: {pawn_possible_moves(p1)}")
+print(f"Black pawn possible moves: {pawn_possible_moves(bp1)}")
+print(f"Bp2: {pawn_possible_moves(bp2)}")
+print(f"p2: {pawn_possible_moves(p2)}")
+print(f"p3 {pawn_possible_moves(p3)}")
+
 
 
 
