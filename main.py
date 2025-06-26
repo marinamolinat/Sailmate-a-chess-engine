@@ -229,7 +229,55 @@ class Rook(Piece):
 
 
         
-##Array of all pieces
+##Might do a board class, instead of an array of pieces
+
+class Board(): 
+    def __init__(self, pieces, doesWhitePlay):
+        self.pieces = pieces
+        self.doesWhitePlay = doesWhitePlay
+        self.pieces = pieces
+    
+    def move(piece, square):
+        self.doesWhitePlay = not self.doesWhitePlay
+
+        #Check if a piece has been captured, and removes it in the case
+        for piece in self.pieces:
+            if piece.location == square:
+                self.pieces.remove(piece)
+
+        piece.location = square
+             
+
+    def draw(self): 
+        board = []
+        for i in range(8):
+            board.append([])
+            for j in range(8):
+                board[i].append("[ ]")
+                
+        for piece in self.pieces:
+            board[piece.location[0]][piece.location[1]] = f"[{piece.type}]"
+        
+
+        #Now, draw:
+        print("   0  1  2  3  4  5  6  7 ")
+        for i in range(7, -1, -1):
+            stringy = ""
+            for j in range(8):
+                stringy += board[j][i]
+            print(f"{i} " + stringy)
+        
+    
+    #Return a list of all pieces that can be moved? (All black or white pieces for now)
+    def possiblePieces():
+
+        possible = []
+
+        for piece in self.pieces:
+            if piece.isWhite == self.doesWhitePlay:
+                possible.append()
+        return possible
+
 
 p1 = Pawn((0, 1), True)
 bp1 = Pawn((1, 2), False)
@@ -249,41 +297,18 @@ queen2 = Queen((0, 6), False)
 pieces = [p1, bp1, bp2, p2, p3, r1, k1, king, b1, b2, queen, queen2]
 
 
-def draw(pieces): 
-    board = []
-    for i in range(8):
-        board.append([])
-        for j in range(8):
-            board[i].append("[ ]")
-            
-    for piece in pieces:
-        board[piece.location[0]][piece.location[1]] = f"[{piece.type}]"
-    
+        
 
-    #Now, draw:
-    print("   0  1  2  3  4  5  6  7 ")
-    for i in range(7, -1, -1):
-        stringy = ""
-        for j in range(8):
-            stringy += board[j][i]
-        print(f"{i} " + stringy)
-    
+
+myBoard = Board(pieces, True)
+
+myBoard.draw()
+
+
+
+
             
             
-
-
-
-draw(pieces)
-
-for i in range(100):
-    time.sleep(5)
-    piece = random.choice(pieces)
-    move = random.choice(piece.possible_moves(pieces))
-    piece.location = move
-    draw(pieces)
-
-
-
 
 
 
