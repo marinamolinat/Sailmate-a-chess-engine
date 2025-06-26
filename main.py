@@ -220,17 +220,22 @@ class Board():
         self.pieces = pieces
     
     def move(self, piece, square):
-        if piece.__class__.__name__ == "Pawn":
-            if not piece.hasMoved:
-                piece.hasMoved = True
-
-        self.doesWhitePlay = not self.doesWhitePlay
 
         #Check if a piece has been captured, and removes it in the case
         for p in self.pieces:
             if p.location == square:
                 self.pieces.remove(p)
 
+        if piece.__class__.__name__ == "Pawn":
+            if not piece.hasMoved:
+                piece.hasMoved = True
+
+            if square[1] == 0 or square[1] == 7:
+                new = Queen(square, piece.isWhite)
+                self.pieces.remove(piece)
+                pieces.append(new)
+
+        self.doesWhitePlay = not self.doesWhitePlay
         piece.location = square
 
              
@@ -282,29 +287,26 @@ class Board():
                 else: 
                     return -1                
 
+   
+   
+   
         return 1    
 
 
-p1 = Pawn((0, 1), True)
-bp1 = Pawn((1, 2), False)
-bp2 = Pawn((3, 5), False)
-p2 = Pawn((2, 4), True)
-p3 = Pawn((4, 4), True)
-
-r1 = Rook((1, 5), True)
-k1 = Knight((5, 6), False)
-king = King((7, 7), False)
-b1 = Bishop((5, 2), True)
-b2 = Bishop((2, 6), False)
-queen = Queen((3, 1), True)
-queen2 = Queen((0, 6), False)
+pieces = []
 
 
-pieces = [p1, bp1, bp2, p2, p3, r1, k1, king, b1, b2, queen, queen2]
+color = True
+for j in [1, 6]:
+    if j == 6:
+        color = False
+    for i in range(8):
+        pawn = Pawn((i, j), color)
+        pieces.append(pawn)
 
 
 
-        
+
 
 
 myBoard = Board(pieces, True)
