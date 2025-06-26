@@ -16,26 +16,8 @@ class Piece():
         self.location = location 
         self.isWhite = isWhite
         self.type = None
-
-    #Check if a square is empty and possible in the board. 
-    # 1: its empty; -2: its occupied by a piece of the same color; -1: occupied by an enemy piece
-    def check(self, square, pieces):
-
-        #Check if a square is in bounds
-        if not (square[0] <= 7 and square[0] >= 0 and square[1] <= 7 and square[1] >= 0):
-            return 0
-
-        #Check if the square is empty
-        for piece in pieces: 
-            if piece.location == square:
-                if self.isWhite == piece.isWhite:
-                    return -2
-                else: 
-                    return -1                
-
-        return 1    
         
-    def possible_moves(self, pieces):
+    def possible_moves(self, pieces, board):
         raise NotImplementedError("Must be implemented by the subclass") 
     
    
@@ -57,7 +39,7 @@ class Pawn(Piece):
             self.type = "♟"
         else: 
             self.type = "♙"
-    def possible_moves(self, pieces):
+    def possible_moves(self, board):
         possible = [] 
         direction = 1
 
@@ -66,25 +48,25 @@ class Pawn(Piece):
         
         #Check y+1
         move = ((self.location[0]), (self.location[1] + direction))
-        if self.check(move, pieces) == 1:
+        if board.check(move, self.isWhite) == 1:
             possible.append(move)
 
         #Check y+2
         if not self.hasMoved:
             move = ((self.location[0]), (self.location[1] + direction*2))
-            if self.check(move, pieces) == 1:
+            if board.check(move, self.isWhite) == 1:
                 possible.append(move)
     
         
 
         #Check diagonal capturing, towards right
         move = (self.location[0] + 1 , self.location[1] + direction)
-        if self.check(move, pieces) == -1:
+        if board.check(move, self.isWhite) == -1:
             possible.append(move)
         
         #Check diagonal capturing, towards left
         move = (self.location[0] - 1 , self.location[1] + direction)
-        if self.check(move, pieces) == -1:
+        if board.check(move, self.isWhite) == -1:
             possible.append(move)
     
         return possible
@@ -98,12 +80,12 @@ class Knight(Piece):
             self.type = "♞"
         else: 
             self.type = "♘"   
-    def possible_moves(self, pieces):
+    def possible_moves(self, board):
         possible = []
         map = [(2, 1),(-2, 1), (2, -1), (-2, -1), (1, 2), (-1, 2), (1, -2), (-1, -2)]
         for i in map:
             move = ((self.location[0] + i[0]), (self.location[1] + i[1]))
-            conditional = self.check(move, pieces)
+            conditional = board.check(move, self.isWhite)
             if conditional == 1 or conditional == -1:
                 possible.append(move)
 
@@ -119,14 +101,14 @@ class Bishop(Piece):
             self.type = "♝"
         else: 
             self.type = "♗" 
-    def possible_moves(self, pieces):
+    def possible_moves(self, board):
         possible = [] 
 
         for i in [(1, 1), (1, -1), (-1, 1), (-1, -1)]:
             for j in range(1, 7):
                 move =  ((self.location[0] + (j*i[0])), (self.location[1] + (j * i[1])))
     
-                conditional = self.check(move, pieces)
+                conditional = board.check(move, self.isWhite)
                 if conditional == 1:
                     possible.append(move)
                 elif conditional == -1:
@@ -145,14 +127,14 @@ class King(Piece):
             self.type = "♚"
         else: 
             self.type = "♔"      
-    def possible_moves(self, pieces):
+    def possible_moves(self, board):
         #Really shitty king that doesnt understand that can put itself into checkmate
 
         possible = []
         map = [(0, 1),(0, -1), (1, 1), (1, -1), (-1, 1), (-1, -1), (1, 0), (-1, 0)]
         for i in map:
             move = ((self.location[0] + i[0]), (self.location[1] + i[1]))
-            conditional = self.check(move, pieces)
+            conditional = board.check(move, self.isWhite)
             if conditional == 1 or conditional == -1:
                 possible.append(move)
 
@@ -165,7 +147,7 @@ class Queen(Piece):
             self.type = "♛"
         else: 
             self.type = "♕"
-    def possible_moves(self, pieces):
+    def possible_moves(self, board):
         # This just borrows code from the rook and bishop
 
         possible = []
@@ -175,7 +157,7 @@ class Queen(Piece):
             for j in range(1, 8):
                 move =  ((self.location[0] + (j*i[0])), (self.location[1] + (j * i[1])))
    
-                conditional = self.check(move, pieces)
+                conditional = board.check(move, self.isWhite)
                 if conditional == 1:
                     possible.append(move)
                 elif conditional == -1:
@@ -188,7 +170,7 @@ class Queen(Piece):
         for i in [(0, 1), (0, -1), (1, 0), (-1, 0)]:
             for j in range(1, 8):
                 move =  ((self.location[0] + (j*i[0])), (self.location[1] + (j * i[1])))
-                conditional = self.check(move, pieces)
+                conditional = board.check(move, self.isWhite)
                 if conditional == 1:
                     possible.append(move)
                 elif conditional == -1:
@@ -208,12 +190,12 @@ class Rook(Piece):
             self.type = "♜"
         else: 
             self.type = "♖"
-    def possible_moves(self, pieces):       
+    def possible_moves(self, board):       
         possible = [] 
         for i in [(0, 1), (0, -1), (1, 0), (-1, 0)]:
             for j in range(1, 8):
                 move =  ((self.location[0] + (j*i[0])), (self.location[1] + (j * i[1])))
-                conditional = self.check(move, pieces)
+                conditional = board.check(move, self.isWhite)
                 if conditional == 1:
                     possible.append(move)
                 elif conditional == -1:
@@ -237,15 +219,20 @@ class Board():
         self.doesWhitePlay = doesWhitePlay
         self.pieces = pieces
     
-    def move(piece, square):
+    def move(self, piece, square):
+        if piece.__class__.__name__ == "Pawn":
+            if not piece.hasMoved:
+                piece.hasMoved = True
+
         self.doesWhitePlay = not self.doesWhitePlay
 
         #Check if a piece has been captured, and removes it in the case
-        for piece in self.pieces:
-            if piece.location == square:
-                self.pieces.remove(piece)
+        for p in self.pieces:
+            if p.location == square:
+                self.pieces.remove(p)
 
         piece.location = square
+
              
 
     def draw(self): 
@@ -260,23 +247,42 @@ class Board():
         
 
         #Now, draw:
-        print("   0  1  2  3  4  5  6  7 ")
         for i in range(7, -1, -1):
             stringy = ""
             for j in range(8):
                 stringy += board[j][i]
             print(f"{i} " + stringy)
+        print("   0  1  2  3  4  5  6  7 ")
         
     
     #Return a list of all pieces that can be moved? (All black or white pieces for now)
-    def possiblePieces():
+    def possiblePieces(self):
 
         possible = []
 
         for piece in self.pieces:
             if piece.isWhite == self.doesWhitePlay:
-                possible.append()
+                possible.append(piece)
+        
         return possible
+    
+    #Check if a square is empty and possible in the board. 
+    # 1: its empty; -2: its occupied by a piece of the same color; -1: occupied by an enemy piece
+    def check(self, square, isWhite):
+
+        #Check if a square is in bounds
+        if not (square[0] <= 7 and square[0] >= 0 and square[1] <= 7 and square[1] >= 0):
+            return 0
+
+        #Check if the square is empty
+        for piece in pieces: 
+            if piece.location == square:
+                if isWhite == piece.isWhite:
+                    return -2
+                else: 
+                    return -1                
+
+        return 1    
 
 
 p1 = Pawn((0, 1), True)
@@ -297,12 +303,31 @@ queen2 = Queen((0, 6), False)
 pieces = [p1, bp1, bp2, p2, p3, r1, k1, king, b1, b2, queen, queen2]
 
 
+
         
 
 
 myBoard = Board(pieces, True)
 
 myBoard.draw()
+
+for i in range(100):
+    time.sleep(1)
+    piece = random.choice(myBoard.possiblePieces())
+
+    print(f"The piece choosen is: {piece}")
+    try:
+        move = random.choice(piece.possible_moves(myBoard))
+        print(piece.possible_moves(myBoard))
+        print(move)
+        myBoard.move(piece, move)
+    except IndexError:
+        print("Chose a piece with no moves")
+    myBoard.draw()
+
+
+
+
 
 
 
