@@ -76,6 +76,7 @@ class Pawn(Piece):
 class Knight(Piece): 
     def __init__(self, location, isWhite):
         super().__init__(location, isWhite)   
+        self.value = 3
         if isWhite: 
             self.type = "♞"
         else: 
@@ -97,6 +98,7 @@ class Knight(Piece):
 class Bishop(Piece):
     def __init__(self, location, isWhite):
         super().__init__(location, isWhite)
+        self.value = 3.5
         if isWhite: 
             self.type = "♝"
         else: 
@@ -123,6 +125,7 @@ class Bishop(Piece):
 class King(Piece):
     def __init__(self, location, isWhite):
         super().__init__(location, isWhite)
+        self.value = 100000
         if isWhite: 
             self.type = "♚"
         else: 
@@ -142,6 +145,7 @@ class King(Piece):
 
 class Queen(Piece): 
     def __init__(self, location, isWhite):
+        self.value = 9
         super().__init__(location, isWhite)
         if isWhite: 
             self.type = "♛"
@@ -313,33 +317,21 @@ myBoard = Board(pieces, True)
 
 myBoard.draw()
 
-for i in range(100):
-    time.sleep(1)
-    piece = random.choice(myBoard.possiblePieces())
-
-    print(f"The piece choosen is: {piece}")
-    try:
-        move = random.choice(piece.possible_moves(myBoard))
-        print(piece.possible_moves(myBoard))
-        print(move)
-        myBoard.move(piece, move)
-    except IndexError:
-        print("Chose a piece with no moves")
-    myBoard.draw()
-
-
-
-
-
-
-
-
-            
-            
-
-
-
-    
 
 def evaluate(board):
-    pass #To come..
+    eval = 0
+    
+    for piece in board.pieces:
+        if piece.isWhite:
+            eval += piece.value
+        else:
+            eval -= piece.value
+        print(eval)
+
+    return eval
+
+print(evaluate(myBoard))
+
+
+
+
