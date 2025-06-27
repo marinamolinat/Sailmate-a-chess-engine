@@ -300,28 +300,62 @@ class Board():
         return 1    
 
 
-pieces = []
 
 
-color = True
-for j in [1, 6]:
-    if j == 6:
-        color = False
-    for i in range(8):
-        pawn = Pawn((i, j), color)
-        pieces.append(pawn)
-pieces.pop(6)
-pawn = Pawn((6, 5), True)
-pieces.append(pawn)
+#A function that will take a fen as input, and create a respective board
+def FEN(fen, doesWhitePlay):
+    x = 0
+    y = 7
+    pieces = []
+    for char in fen: 
+        is_int = False
+        if char.isupper():
+            char = char.lower()
+            isWhite = True
+        else: 
+            isWhite = False
 
+    
 
+        match char:
+            case 'p':
+                piece = Pawn((x, y), isWhite)
+                x += 1
+            case 'q':
+                piece = Queen((x, y), isWhite) 
+                x += 1
+            case 'k':
+                piece = King((x, y), isWhite)
+                x +=1
+            case 'n':
+                piece = Knight((x, y), isWhite)
+                x += 1
+            case 'r':
+                piece = Rook((x, y), isWhite)
+                x += 1
+            case 'b':
+                piece = Bishop((x, y), isWhite)
+                x += 1
+            case '/':
+                y -= 1
+                x = 0 
 
+            case _:  # It has to be an int
+                is_int = True
+                char = int(char)
+                x += char
 
+        if not is_int:
+            pieces.append(piece)
 
+    return Board(pieces, doesWhitePlay)
+    
+    
 
-myBoard = Board(pieces, False)
-
+myBoard = FEN("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR", True)
 myBoard.draw()
+
+        
 
 #Simple eval function lol
 def evaluate(board):
@@ -391,7 +425,7 @@ def minimax(board, depth):
 
 
 
-print(minimax(myBoard, 4))   
+
 
                 
    
