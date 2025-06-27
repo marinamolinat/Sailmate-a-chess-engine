@@ -54,7 +54,7 @@ class Pawn(Piece):
         #Check y+2
         if not self.hasMoved:
             move = ((self.location[0]), (self.location[1] + direction*2))
-            if board.check(move, self.isWhite) == 1:
+            if board.check(move, self.isWhite) == 1 and board.check((move[0], move[1] + direction * -1), self.isWhite) == 1:
                 possible.append(move)
     
         
@@ -353,7 +353,7 @@ def FEN(fen, doesWhitePlay):
     
     
 
-myBoard = FEN("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR", True)
+myBoard = FEN("8/pppppppp/PPPPPPPP/8/8/8/8/8", False)
 myBoard.draw()
 
         
@@ -424,7 +424,8 @@ def minimax(board, depth):
 
     return best
 
-print(minimax(myBoard, 2))
+for piece in myBoard.pieces:
+    print(f"{piece.__class__.__name__} Color: {piece.isWhite} Possible moves: {piece.possible_moves(myBoard)}")
 
 
 
