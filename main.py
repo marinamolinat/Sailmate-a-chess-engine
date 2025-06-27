@@ -8,11 +8,11 @@
 # Also, ♟ is going to be white cause it makes more sense for me, taking into acccount my use of darkmode. I might change this later.
 import random
 import time
+import copy
 
 class Piece():
 
     def __init__(self, location, isWhite):
-        self.value = None
         self.location = location 
         self.isWhite = isWhite
         self.type = None
@@ -221,7 +221,6 @@ class Board():
     def __init__(self, pieces, doesWhitePlay):
         self.pieces = pieces
         self.doesWhitePlay = doesWhitePlay
-        self.pieces = pieces
     
     def move(self, piece, square):
 
@@ -236,8 +235,12 @@ class Board():
 
             if square[1] == 0 or square[1] == 7:
                 new = Queen(square, piece.isWhite)
-                self.pieces.remove(piece)
-                pieces.append(new)
+
+                for p in self.pieces:
+                    if p.location == piece.location and p.isWhite == piece.isWhite and p.__class__ == piece.__class__:
+                        self.pieces.remove(p)
+                
+                self.pieces.append(new)
 
         self.doesWhitePlay = not self.doesWhitePlay
         piece.location = square
@@ -307,17 +310,20 @@ for j in [1, 6]:
     for i in range(8):
         pawn = Pawn((i, j), color)
         pieces.append(pawn)
+pieces.pop(6)
+pawn = Pawn((6, 5), True)
+pieces.append(pawn)
 
 
 
 
 
 
-myBoard = Board(pieces, True)
+myBoard = Board(pieces, False)
 
 myBoard.draw()
 
-
+#Simple eval function lol
 def evaluate(board):
     eval = 0
     
@@ -326,11 +332,74 @@ def evaluate(board):
             eval += piece.value
         else:
             eval -= piece.value
-        print(eval)
 
     return eval
 
-print(evaluate(myBoard))
+
+
+
+
+
+
+#MINIMAX
+def minimax(board, depth):
+
+
+    if depth == 0:
+        return evaluate(board)
+    
+    if board.doesWhitePlay:
+        best = -1000
+
+        for piece in board.possiblePieces():
+            for move in piece.possible_moves(board):
+                
+                pieces_copy = copy.deepcopy(board.pieces)
+                board_copy = Board(pieces_copy, board.doesWhitePlay)
+                for p in pieces_copy:
+                    if p.location == piece.location and p.isWhite == piece.isWhite and p.__class__ == piece.__class__:
+                        new_piece = p
+                
+                board_copy.move(new_piece, move)
+                score = minimax(board_copy, depth-1)
+                if score > best:
+                    best = score    
+
+
+              
+
+    else:
+        best = 1000
+
+        for piece in board.possiblePieces():
+            for move in piece.possible_moves(board):
+                pieces_copy = copy.deepcopy(board.pieces)
+                board_copy = Board(pieces_copy, board.doesWhitePlay)
+                for p in pieces_copy:
+                    if p.location == piece.location and p.isWhite == piece.isWhite and p.__class__ == piece.__class__:
+                        new_piece = p
+                
+                board_copy.move(new_piece, move)
+                score = minimax(board_copy, depth-1)
+                if score < best:
+                    best = score    
+
+            
+                    
+
+    return best
+
+
+
+print(minimax(myBoard, 4))   
+
+                
+   
+        
+    
+
+
+
 
 
 
