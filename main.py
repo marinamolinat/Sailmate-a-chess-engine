@@ -287,7 +287,7 @@ class Board():
             return 0
 
         #Check if the square is empty
-        for piece in pieces: 
+        for piece in self.pieces: 
             if piece.location == square:
                 if isWhite == piece.isWhite:
                     return -2
@@ -337,6 +337,7 @@ def FEN(fen, doesWhitePlay):
                 piece = Bishop((x, y), isWhite)
                 x += 1
             case '/':
+                is_int = True
                 y -= 1
                 x = 0 
 
@@ -423,7 +424,7 @@ def minimax(board, depth):
 
     return best
 
-
+print(minimax(myBoard, 2))
 
 
 
