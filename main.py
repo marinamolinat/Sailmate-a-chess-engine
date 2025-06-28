@@ -32,46 +32,54 @@ class Pawn(Piece):
             self.hasMoved = False
         else:
             self.hasMoved = True
+
+        if self.isWhite:
+            self.direction = 1
+        else:
+            self.direction = -1
         
 
         if isWhite: 
             self.type = "♟"
         else: 
             self.type = "♙"
+    
+    def possibleMovesAttacking(self, board):  #only squares that are attacked
+        possible = []
 
-    def possibleMoves(self, board):
+         #Scan diagonal capturing, towards right
+        move = (self.location[0] + 1 , self.location[1] + self.direction)
+        if board.scan(move, self.isWhite) == -1:
+            possible.append(move)
+        
+        #Scan diagonal capturing, towards left
+        move = (self.location[0] - 1 , self.location[1] + self.direction)
+        if board.scan(move, self.isWhite) == -1:
+            possible.append(move)
+    
+        return possible
+
+    
+
+    def possibleMoves(self, board): 
 
         possible = [] 
 
-        if self.isWhite:
-            direction = 1
-        else:
-            direction = -1
 
         
         #Scan y+1
-        move = ((self.location[0]), (self.location[1] + direction))
+        move = ((self.location[0]), (self.location[1] + self.direction))
         if board.scan(move, self.isWhite) == 1:
             possible.append(move)
 
         #Scan y+2
         if not self.hasMoved:
-            move = ((self.location[0]), (self.location[1] + direction*2))
-            if board.scan(move, self.isWhite) == 1 and board.scan((move[0], move[1] + direction * -1), self.isWhite) == 1:
+            move = ((self.location[0]), (self.location[1] + self.direction*2))
+            if board.scan(move, self.isWhite) == 1 and board.scan((move[0], move[1] + self.direction * -1), self.isWhite) == 1:
                 possible.append("doubleMove") #This is done to account for en Passant
 
+        possible += self.possibleMovesAttacking(board)
 
-    
-    
-        #Scan diagonal capturing, towards right
-        move = (self.location[0] + 1 , self.location[1] + direction)
-        if board.scan(move, self.isWhite) == -1:
-            possible.append(move)
-        
-        #Scan diagonal capturing, towards left
-        move = (self.location[0] - 1 , self.location[1] + direction)
-        if board.scan(move, self.isWhite) == -1:
-            possible.append(move)
 
 
         #En passant
@@ -245,16 +253,12 @@ class Board():
                 self.pieces.remove(p)
 
         if piece.__class__.__name__ == "Pawn":
-            if piece.isWhite:
-                direction = 1
-            else:
-                direction = -1
-
+        
             if not piece.hasMoved:
                 piece.hasMoved = True
 
                 if square == "doubleMove":
-                    square = (piece.location[0], piece.location[1] + (direction * 2))
+                    square = (piece.location[0], piece.location[1] + (piece.direction * 2))
                     self.enPassant[1] = square
                     self.enPassant[0] = True
 
@@ -270,7 +274,7 @@ class Board():
             elif square == "enPassant":
 
                 #The square to which the pawn will move to
-                square = (self.enPassant[1][0], self.enPassant[1][1] + direction)
+                square = (self.enPassant[1][0], self.enPassant[1][1] + piece.direction)
 
                 #Removing the other pawn
                 for p in self.pieces:
@@ -283,9 +287,6 @@ class Board():
 
 
     
-
-
-
              
 
     def draw(self): 
@@ -339,6 +340,36 @@ class Board():
    
    
         return 1    
+    
+    #Will check if the king is not attacked or place in such a way that it can be captured
+    def isMoveLegal(self, isWhite):
+        king = None
+        attackedSquares = []
+        for p in self.pieces:
+            if  p.__class__.__name__ == "King" and p.isWhite == isWhite:
+                king = p
+
+            elif not p.isWhite == isWhite:
+                if p.__class__.__name__ == "Pawn":
+                    attackedSquares += p.possibleMovesAttacking(self)
+                else: 
+                    attackedSquares += p.possibleMoves(self)
+
+        if king.location in attackedSquares:
+            return False
+        else:
+            return True
+                
+
+                
+
+
+        
+
+            
+
+
+        
 
 
 
@@ -406,8 +437,8 @@ myBoard.draw()
 myBoard.move(bp1, "doubleMove")
 
 myBoard.draw()
-print(myBoard.enPassant)
-print(p.possibleMoves(myBoard))
+
+myBoard.move(p, "enPassant")
 
 myBoard.draw()
 
