@@ -1,11 +1,3 @@
-#Okay, this is going to be extremely slowwww and messy, but learning all the proper ways of doing an engine is going to cost me too many brain cells. 
-
-##I really wanna draw a board :/. I wasn't thinking of doing a gui but I think it would be easier if I could vizualise
-
-
-#Possibly use vector math 
-
-# Also, ♟ is going to be white cause it makes more sense for me, taking into acccount my use of darkmode. I might change this later.
 import copy
 
 class Piece():
@@ -129,6 +121,7 @@ class Bishop(Piece):
         for i in [(1, 1), (1, -1), (-1, 1), (-1, -1)]:
             for j in range(1, 7):
                 move =  ((self.location[0] + (j*i[0])), (self.location[1] + (j * i[1])))
+    
     
                 conditional = board.scan(move, self.isWhite)
                 if conditional == 1:
@@ -281,7 +274,6 @@ class Board():
                     if p.location == self.enPassant[1]:
                         self.pieces.remove(p)
         
-        print(square)
         self.doesWhitePlay = not self.doesWhitePlay
         piece.location = square
 
@@ -309,15 +301,32 @@ class Board():
         print("   0  1  2  3  4  5  6  7 ")
         
     
-    #Return a list of all pieces that can be moved? (All black or white pieces for now)
-    def possiblePieces(self):
+    #Return a dictionary with the piece object, and a list where such piece can move
+    def possibleMoves(self):
 
-        possible = []
+        possible = {}
 
         for piece in self.pieces:
+            moves =  []
             if piece.isWhite == self.doesWhitePlay:
-                possible.append(piece)
-        
+                for move in piece.possibleMoves(self):
+                    pieces_copy = copy.deepcopy(self.pieces)
+                    board_copy = Board(pieces_copy, self.doesWhitePlay)
+                    pCopy = None
+                   
+
+                    #I need to find the piece in the deep copy :/
+                    for p in pieces_copy:
+                        if p.location == piece.location:
+                            pCopy = p
+                             
+
+                    board_copy.move(pCopy, move)
+
+                    if not board_copy.isInCheck(self.doesWhitePlay):
+                        moves.append(move)
+            possible[piece] = moves
+
         return possible
     
     #Scan if a square is empty and possible in the board. 
@@ -341,8 +350,8 @@ class Board():
    
         return 1    
     
-    #Will check if the king is not attacked or place in such a way that it can be captured
-    def isMoveLegal(self, isWhite):
+    #Will check if that the king cannot be captured with a given move 
+    def isInCheck(self, isWhite):
         king = None
         attackedSquares = []
         for p in self.pieces:
@@ -356,9 +365,10 @@ class Board():
                     attackedSquares += p.possibleMoves(self)
 
         if king.location in attackedSquares:
-            return False
-        else:
             return True
+        else:
+            return False
+
                 
 
                 
@@ -426,21 +436,12 @@ def FEN(fen, doesWhitePlay):
     
 
 myBoard = FEN("rnbqkbnr/ppppp3/8/8/8/8/PPPPPP1P/R1BQKBNR", True)
-
-bp1 = Pawn((5, 6), False)
-bp2 = Pawn((7, 6), False)
-p = Pawn((6, 4), True)
-n = Knight((1, 0), True)
-myBoard.pieces += [bp1, bp2, p, n]
 myBoard.draw()
+dicti = myBoard.possibleMoves()
+for piece in dicti: 
+    print(f"Piece: {piece.__class__.__name__} Moves: {dicti[piece]}")
 
-myBoard.move(bp1, "doubleMove")
 
-myBoard.draw()
-
-myBoard.move(p, "enPassant")
-
-myBoard.draw()
 
 
 
