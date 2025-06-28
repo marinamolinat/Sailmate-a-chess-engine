@@ -6,8 +6,6 @@
 #Possibly use vector math 
 
 # Also, ♟ is going to be white cause it makes more sense for me, taking into acccount my use of darkmode. I might change this later.
-import random
-import time
 import copy
 
 class Piece():
@@ -15,59 +13,73 @@ class Piece():
     def __init__(self, location, isWhite):
         self.location = location 
         self.isWhite = isWhite
-        self.type = None
-        
-    def possible_moves(self, pieces, board):
+
+
+    def possibleMoves(self, pieces, board):
         raise NotImplementedError("Must be implemented by the subclass") 
     
    
-       
 
 
 
 class Pawn(Piece):
     def __init__(self, location, isWhite):
-        super().__init__(location, isWhite)   
+        super().__init__(location, isWhite)  
+
         self.value = 1
 
-        if location[1] == 1 and isWhite or location[1] == 6 and not isWhite:
+        if (location[1] == 1 and isWhite) or (location[1] == 6 and not isWhite):
             self.hasMoved = False
         else:
             self.hasMoved = True
+        
 
         if isWhite: 
             self.type = "♟"
         else: 
             self.type = "♙"
-    def possible_moves(self, board):
-        possible = [] 
-        direction = 1
 
-        if not self.isWhite:
+    def possibleMoves(self, board):
+
+        possible = [] 
+
+        if self.isWhite:
+            direction = 1
+        else:
             direction = -1
+
         
-        #Check y+1
+        #Scan y+1
         move = ((self.location[0]), (self.location[1] + direction))
-        if board.check(move, self.isWhite) == 1:
+        if board.scan(move, self.isWhite) == 1:
             possible.append(move)
 
-        #Check y+2
+        #Scan y+2
         if not self.hasMoved:
             move = ((self.location[0]), (self.location[1] + direction*2))
-            if board.check(move, self.isWhite) == 1 and board.check((move[0], move[1] + direction * -1), self.isWhite) == 1:
-                possible.append(move)
-    
-        
+            if board.scan(move, self.isWhite) == 1 and board.scan((move[0], move[1] + direction * -1), self.isWhite) == 1:
+                possible.append("doubleMove") #This is done to account for en Passant
 
-        #Check diagonal capturing, towards right
+
+    
+    
+        #Scan diagonal capturing, towards right
         move = (self.location[0] + 1 , self.location[1] + direction)
-        if board.check(move, self.isWhite) == -1:
+        if board.scan(move, self.isWhite) == -1:
             possible.append(move)
         
-        #Check diagonal capturing, towards left
+        #Scan diagonal capturing, towards left
         move = (self.location[0] - 1 , self.location[1] + direction)
-        if board.check(move, self.isWhite) == -1:
+        if board.scan(move, self.isWhite) == -1:
             possible.append(move)
+
+
+        #En passant
+        if (board.enPassant[0] == True) and (board.enPassant[1] == (self.location[0] + 1, self.location[1]) or board.enPassant[1] == (self.location[0] -1, self.location[1])):
+            possible.append("enPassant")
+
+
+
     
         return possible
             
@@ -81,12 +93,12 @@ class Knight(Piece):
             self.type = "♞"
         else: 
             self.type = "♘"   
-    def possible_moves(self, board):
+    def possibleMoves(self, board):
         possible = []
         map = [(2, 1),(-2, 1), (2, -1), (-2, -1), (1, 2), (-1, 2), (1, -2), (-1, -2)]
         for i in map:
             move = ((self.location[0] + i[0]), (self.location[1] + i[1]))
-            conditional = board.check(move, self.isWhite)
+            conditional = board.scan(move, self.isWhite)
             if conditional == 1 or conditional == -1:
                 possible.append(move)
 
@@ -103,14 +115,14 @@ class Bishop(Piece):
             self.type = "♝"
         else: 
             self.type = "♗" 
-    def possible_moves(self, board):
+    def possibleMoves(self, board):
         possible = [] 
 
         for i in [(1, 1), (1, -1), (-1, 1), (-1, -1)]:
             for j in range(1, 7):
                 move =  ((self.location[0] + (j*i[0])), (self.location[1] + (j * i[1])))
     
-                conditional = board.check(move, self.isWhite)
+                conditional = board.scan(move, self.isWhite)
                 if conditional == 1:
                     possible.append(move)
                 elif conditional == -1:
@@ -130,14 +142,14 @@ class King(Piece):
             self.type = "♚"
         else: 
             self.type = "♔"      
-    def possible_moves(self, board):
+    def possibleMoves(self, board):
         #Really shitty king that doesnt understand that can put itself into checkmate
 
         possible = []
         map = [(0, 1),(0, -1), (1, 1), (1, -1), (-1, 1), (-1, -1), (1, 0), (-1, 0)]
         for i in map:
             move = ((self.location[0] + i[0]), (self.location[1] + i[1]))
-            conditional = board.check(move, self.isWhite)
+            conditional = board.scan(move, self.isWhite)
             if conditional == 1 or conditional == -1:
                 possible.append(move)
 
@@ -151,7 +163,7 @@ class Queen(Piece):
             self.type = "♛"
         else: 
             self.type = "♕"
-    def possible_moves(self, board):
+    def possibleMoves(self, board):
         # This just borrows code from the rook and bishop
 
         possible = []
@@ -161,7 +173,7 @@ class Queen(Piece):
             for j in range(1, 8):
                 move =  ((self.location[0] + (j*i[0])), (self.location[1] + (j * i[1])))
    
-                conditional = board.check(move, self.isWhite)
+                conditional = board.scan(move, self.isWhite)
                 if conditional == 1:
                     possible.append(move)
                 elif conditional == -1:
@@ -174,7 +186,7 @@ class Queen(Piece):
         for i in [(0, 1), (0, -1), (1, 0), (-1, 0)]:
             for j in range(1, 8):
                 move =  ((self.location[0] + (j*i[0])), (self.location[1] + (j * i[1])))
-                conditional = board.check(move, self.isWhite)
+                conditional = board.scan(move, self.isWhite)
                 if conditional == 1:
                     possible.append(move)
                 elif conditional == -1:
@@ -194,12 +206,12 @@ class Rook(Piece):
             self.type = "♜"
         else: 
             self.type = "♖"
-    def possible_moves(self, board):       
+    def possibleMoves(self, board):       
         possible = [] 
         for i in [(0, 1), (0, -1), (1, 0), (-1, 0)]:
             for j in range(1, 8):
                 move =  ((self.location[0] + (j*i[0])), (self.location[1] + (j * i[1])))
-                conditional = board.check(move, self.isWhite)
+                conditional = board.scan(move, self.isWhite)
                 if conditional == 1:
                     possible.append(move)
                 elif conditional == -1:
@@ -221,8 +233,11 @@ class Board():
     def __init__(self, pieces, doesWhitePlay):
         self.pieces = pieces
         self.doesWhitePlay = doesWhitePlay
-    
+        self.enPassant = [False, None] #Will store the pawn that can currently be captured ith enPessant
+
+
     def move(self, piece, square):
+        self.enPassant[0] = False
 
         #Check if a piece has been captured, and removes it in the case
         for p in self.pieces:
@@ -230,10 +245,20 @@ class Board():
                 self.pieces.remove(p)
 
         if piece.__class__.__name__ == "Pawn":
+            if piece.isWhite:
+                direction = 1
+            else:
+                direction = -1
+
             if not piece.hasMoved:
                 piece.hasMoved = True
 
-            if square[1] == 0 or square[1] == 7:
+                if square == "doubleMove":
+                    square = (piece.location[0], piece.location[1] + (direction * 2))
+                    self.enPassant[1] = square
+                    self.enPassant[0] = True
+
+            elif square[1] == 0 or square[1] == 7:
                 new = Queen(square, piece.isWhite)
 
                 for p in self.pieces:
@@ -242,8 +267,24 @@ class Board():
                 
                 self.pieces.append(new)
 
+            elif square == "enPassant":
+
+                #The square to which the pawn will move to
+                square = (self.enPassant[1][0], self.enPassant[1][1] + direction)
+
+                #Removing the other pawn
+                for p in self.pieces:
+                    if p.location == self.enPassant[1]:
+                        self.pieces.remove(p)
+        
+        print(square)
         self.doesWhitePlay = not self.doesWhitePlay
         piece.location = square
+
+
+    
+
+
 
              
 
@@ -278,15 +319,15 @@ class Board():
         
         return possible
     
-    #Check if a square is empty and possible in the board. 
+    #Scan if a square is empty and possible in the board. 
     # 1: its empty; -2: its occupied by a piece of the same color; -1: occupied by an enemy piece
-    def check(self, square, isWhite):
+    def scan(self, square, isWhite):
 
-        #Check if a square is in bounds
+        #Scan if a square is in bounds
         if not (square[0] <= 7 and square[0] >= 0 and square[1] <= 7 and square[1] >= 0):
             return 0
 
-        #Check if the square is empty
+        #Scan if the square is empty
         for piece in self.pieces: 
             if piece.location == square:
                 if isWhite == piece.isWhite:
@@ -353,8 +394,27 @@ def FEN(fen, doesWhitePlay):
     
     
 
-myBoard = FEN("8/pppppppp/PPPPPPPP/8/8/8/8/8", False)
+myBoard = FEN("rnbqkbnr/ppppp3/8/8/8/8/PPPPPP1P/R1BQKBNR", True)
+
+bp1 = Pawn((5, 6), False)
+bp2 = Pawn((7, 6), False)
+p = Pawn((6, 4), True)
+n = Knight((1, 0), True)
+myBoard.pieces += [bp1, bp2, p, n]
 myBoard.draw()
+
+myBoard.move(bp1, "doubleMove")
+
+myBoard.draw()
+print(myBoard.enPassant)
+print(p.possibleMoves(myBoard))
+
+myBoard.draw()
+
+
+
+
+
 
         
 
@@ -387,7 +447,7 @@ def minimax(board, depth):
         best = -1000
 
         for piece in board.possiblePieces():
-            for move in piece.possible_moves(board):
+            for move in piece.possibleMoves(board):
                 
                 pieces_copy = copy.deepcopy(board.pieces)
                 board_copy = Board(pieces_copy, board.doesWhitePlay)
@@ -407,7 +467,7 @@ def minimax(board, depth):
         best = 1000
 
         for piece in board.possiblePieces():
-            for move in piece.possible_moves(board):
+            for move in piece.possibleMoves(board):
                 pieces_copy = copy.deepcopy(board.pieces)
                 board_copy = Board(pieces_copy, board.doesWhitePlay)
                 for p in pieces_copy:
@@ -423,10 +483,6 @@ def minimax(board, depth):
                     
 
     return best
-
-for piece in myBoard.pieces:
-    print(f"{piece.__class__.__name__} Color: {piece.isWhite} Possible moves: {piece.possible_moves(myBoard)}")
-
 
 
                 
