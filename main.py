@@ -285,7 +285,7 @@ class Board():
         self.pieces = pieces
         self.doesWhitePlay = doesWhitePlay
         self.enPassant = [False, None] #Will store the pawn that can currently be captured ith enPessant
-
+        self.checkMate = False 
 
     def move(self, piece, square):
         self.enPassant[0] = False
@@ -376,10 +376,17 @@ class Board():
                 stringy += board[j][i]
             print(f"{i} " + stringy)
         print("   0  1  2  3  4  5  6  7 ")
-        
+
+    
+    def checkOrStailMate(self):
+        if self.isInCheck(self.doesWhitePlay):
+            return "CHECKMATE"
+        else:
+            return "STALEMATE"
     
     #Return a dictionary with the piece object, and a list where such piece can move
     def possibleMoves(self):
+        legalMoves = False
 
         possible = {}
 
@@ -402,9 +409,15 @@ class Board():
 
                     if not board_copy.isInCheck(self.doesWhitePlay):
                         moves.append(move)
-            possible[piece] = moves
+                        legalMoves = True
 
+            possible[piece] = moves
+    
+        if not legalMoves:
+            return self.checkOrStailMate() 
+                   
         return possible
+    
     
     #Scan if a square is empty and possible in the board. 
     # 1: its empty; -2: its occupied by a piece of the same color; -1: occupied by an enemy piece
@@ -434,12 +447,9 @@ class Board():
         for p in self.pieces:
             if  p.__class__.__name__ == "King" and p.isWhite == isWhite:
                 king = p
-
-            elif not p.isWhite == isWhite:
-                if p.__class__.__name__ == "Pawn":
-                    attackedSquares += p.possibleMovesAttacking(self)
-                else: 
-                    attackedSquares += p.possibleMoves(self)
+                break
+        
+        attackedSquares = self.attackingSquares(isWhite)
 
         if king.location in attackedSquares:
             return True
@@ -524,13 +534,12 @@ def FEN(fen, doesWhitePlay):
 
     return Board(pieces, doesWhitePlay)
     
-    
 
-myBoard = FEN("rnbqk2r/pppppppp/8/8/8/8/PPPPPPPP/R3K2R", True)
+
+myBoard = FEN("4k3/pppppppp/1n6/4r3/1K6/7r/2r5/8", True)
 myBoard.draw()
 possible = myBoard.possibleMoves()
-for piece in possible:
-    print(f"piece: {piece} moves: {possible[piece]}")
+print("Possible Moves: ", possible)
 
 
 
