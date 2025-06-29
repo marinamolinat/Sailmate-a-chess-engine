@@ -158,7 +158,7 @@ class King(Piece):
          
         #short castling
         if board.scan((5, y), self.isWhite) == 1 and board.scan((6, y), self.isWhite) == 1:
-            print("YEET")
+
             for p in board.pieces:
                 if p.location == (7, y) and p.__class__.__name__ == "Rook":
                     if not p.hasMoved:
@@ -166,7 +166,7 @@ class King(Piece):
         
         #Long casltling
         if board.scan((3, y), self.isWhite) == 1 and board.scan((2, y), self.isWhite) == 1 and board.scan((1, y), self.isWhite) == 1:
-            print("YEET")
+         
             for p in board.pieces:
                 if p.location == (0, y) and p.__class__.__name__ == "Rook":
                     if not p.hasMoved:
@@ -311,11 +311,34 @@ class Board():
                 for p in self.pieces:
                     if p.location == self.enPassant[1]:
                         self.pieces.remove(p)
-        elif  piece.__class__.__name__ == "King" or  piece.__class__.__name__ == "Rook":
-            if piece.hasMoved == False:
-                piece.hasMoved == True    
 
-        
+        elif  piece.__class__.__name__ == "King" or  piece.__class__.__name__ == "Rook": 
+            if piece.hasMoved == False:
+                piece.hasMoved = True  
+
+            if square == "0-0":
+                y = 0 if piece.isWhite else 7
+
+                square = (6, y)
+
+                #Search for rook and place it accordingly
+                for p in self.pieces:
+                    if p.location == (7, y):
+                        p.location = (5, y)
+
+            elif square == "0-0-0":
+                y = 0 if piece.isWhite else 7
+
+                square = (2, y)
+
+                #Search for rook and place it accordingly
+                for p in self.pieces:
+                    if p.location == (0, y):
+                        p.location = (3, y)
+
+
+
+                
         self.doesWhitePlay = not self.doesWhitePlay
         piece.location = square
 
@@ -477,11 +500,17 @@ def FEN(fen, doesWhitePlay):
     
     
 
-myBoard = FEN("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/R6R", True)
+myBoard = FEN("rnbq4/pppppppp/8/8/8/8/PPPPPPPP/R6R", True)
+rooky = Rook((7, 7), False)
 kingy = King((4, 0), True)
+bkingy = King((4, 7), False)
 myBoard.pieces.append(kingy)
+myBoard.pieces.append(bkingy)
+myBoard.pieces.append(rooky)
 myBoard.draw()
-print(kingy.possibleMoves(myBoard))
+myBoard.move(kingy, "0-0")
+myBoard.draw()
+
 
 
 #Simple eval function lol
