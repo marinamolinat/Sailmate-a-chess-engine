@@ -137,62 +137,74 @@ class King(Piece):
         self.value = 100000
         if isWhite: 
             self.type = "♚"
+            self.hasMoved = False if location == (4, 0) else True
         else: 
             self.type = "♔" 
+            self.hasMoved = False if location == (4, 7) else True
   
     
-        self.hasMoved = False
-    
-    def canCastle(self, board):
-        #Need to add checks and make sure the king doeesnt enter check 
-        castles = []
-
-        if self.hasMoved:
-            return castles
-        
-        if self.isWhite:
-            y = 0
-        else:
-            y = 7
-        
-         
-        #short castling
-        if board.scan((5, y), self.isWhite) == 1 and board.scan((6, y), self.isWhite) == 1:
-
-            for p in board.pieces:
-                if p.location == (7, y) and p.__class__.__name__ == "Rook":
-                    if not p.hasMoved:
-                        castles.append("0-0")
-        
-        #Long casltling
-        if board.scan((3, y), self.isWhite) == 1 and board.scan((2, y), self.isWhite) == 1 and board.scan((1, y), self.isWhite) == 1:
-         
-            for p in board.pieces:
-                if p.location == (0, y) and p.__class__.__name__ == "Rook":
-                    if not p.hasMoved:
-                        castles.append("0-0-0")
-
-        return castles
-
-
-    def possibleMoves(self, board):
+    def attackingSquares(self, board):
         #Really shitty king that doesnt understand that can put itself into checkmate
 
-        possible = []
+        squares = []
         map = [(0, 1),(0, -1), (1, 1), (1, -1), (-1, 1), (-1, -1), (1, 0), (-1, 0)]
         for i in map:
             move = ((self.location[0] + i[0]), (self.location[1] + i[1]))
             conditional = board.scan(move, self.isWhite)
             if conditional == 1 or conditional == -1:
-                possible.append(move)
+                squares.append(move)
+        return squares
+
+    #Currently, this is so disguting. I swear ill fix it soon enough
+    def canCastle(self, board):
+       
+        castles = []
+        squares = board.attackingSquares(self.isWhite)
+
+        if self.hasMoved or self.location in squares:
+            return castles
         
-        possible += self.canCastle(board)
+        y = 0 if self.isWhite else 7
 
+        importantSquares = [  #This contain the squares that must be empty as well as the rook square [0] is for shory castling, [1] for long
 
+        [[(5, y), (6, y)], (7, y), "0-0"],
+        [[(3, y), (2, y), (1, y)], (0, y), "0-0-0"]
 
-        return possible
+        ]
     
 
+        
+        #Loop through both types of castling (i.e 2 times)
+        for castlingType in importantSquares:
+            break_outer_loop = False  
+
+            #Will make sure square is empty, if its not, it will try long castling
+            for square in castlingType[0]:
+                if board.scan(square, self.isWhite) != 1 or square in squares:
+                    break_outer_loop = True
+                    break
+            if break_outer_loop:
+                continue
+            
+            
+            #Will make sure the correspondant rook exists
+            for p in board.pieces:
+                if p.location == castlingType[1] and p.__class__.__name__ == "Rook":
+                    if not p.hasMoved:
+                        castles.append(castlingType[2])
+                    
+        return castles
+                        
+
+    def possibleMoves(self, board):
+        possible = []
+        possible += self.attackingSquares(board)
+        possible += self.canCastle(board)
+        return possible
+
+
+        
 class Queen(Piece): 
     def __init__(self, location, isWhite):
         self.value = 9
@@ -433,6 +445,20 @@ class Board():
             return True
         else:
             return False
+        
+    def attackingSquares(self, isWhite):
+        attackedSquares = []
+
+        for p in self.pieces:
+            if not p.isWhite == isWhite:
+                    if p.__class__.__name__ == "Pawn":
+                        attackedSquares += p.possibleMovesAttacking(self)
+                    elif p.__class__.__name__ == "King":
+                        attackedSquares += p.attackingSquares(self)
+                    else:
+                        attackedSquares += p.possibleMoves(self)
+        return attackedSquares
+
 
                 
 
@@ -500,16 +526,11 @@ def FEN(fen, doesWhitePlay):
     
     
 
-myBoard = FEN("rnbq4/pppppppp/8/8/8/8/PPPPPPPP/R6R", True)
-rooky = Rook((7, 7), False)
-kingy = King((4, 0), True)
-bkingy = King((4, 7), False)
-myBoard.pieces.append(kingy)
-myBoard.pieces.append(bkingy)
-myBoard.pieces.append(rooky)
+myBoard = FEN("rnbqk2r/pppppppp/8/8/8/8/PPPPPPPP/R3K2R", True)
 myBoard.draw()
-myBoard.move(kingy, "0-0")
-myBoard.draw()
+possible = myBoard.possibleMoves()
+for piece in possible:
+    print(f"piece: {piece} moves: {possible[piece]}")
 
 
 
