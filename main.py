@@ -25,16 +25,12 @@ class Pawn(Piece):
         else:
             self.hasMoved = True
 
-        if self.isWhite:
-            self.direction = 1
-        else:
-            self.direction = -1
-        
-
         if isWhite: 
             self.type = "♟"
+            self.direction = 1
         else: 
             self.type = "♙"
+            self.direction = -1
     
     def possibleMovesAttacking(self, board):  #only squares that are attacked
         possible = []
@@ -77,7 +73,6 @@ class Pawn(Piece):
         #En passant
         if (board.enPassant[0] == True) and (board.enPassant[1] == (self.location[0] + 1, self.location[1]) or board.enPassant[1] == (self.location[0] -1, self.location[1])):
             possible.append("enPassant")
-
 
 
     
@@ -131,6 +126,7 @@ class Bishop(Piece):
                     break
                 else:
                     break
+
         return possible
 
         
@@ -142,7 +138,43 @@ class King(Piece):
         if isWhite: 
             self.type = "♚"
         else: 
-            self.type = "♔"      
+            self.type = "♔" 
+  
+    
+        self.hasMoved = False
+    
+    def canCastle(self, board):
+        #Need to add checks and make sure the king doeesnt enter check 
+        castles = []
+
+        if self.hasMoved:
+            return castles
+        
+        if self.isWhite:
+            y = 0
+        else:
+            y = 7
+        
+         
+        #short castling
+        if board.scan((5, y), self.isWhite) == 1 and board.scan((6, y), self.isWhite) == 1:
+            print("YEET")
+            for p in board.pieces:
+                if p.location == (7, y) and p.__class__.__name__ == "Rook":
+                    if not p.hasMoved:
+                        castles.append("0-0")
+        
+        #Long casltling
+        if board.scan((3, y), self.isWhite) == 1 and board.scan((2, y), self.isWhite) == 1 and board.scan((1, y), self.isWhite) == 1:
+            print("YEET")
+            for p in board.pieces:
+                if p.location == (0, y) and p.__class__.__name__ == "Rook":
+                    if not p.hasMoved:
+                        castles.append("0-0-0")
+
+        return castles
+
+
     def possibleMoves(self, board):
         #Really shitty king that doesnt understand that can put itself into checkmate
 
@@ -153,8 +185,13 @@ class King(Piece):
             conditional = board.scan(move, self.isWhite)
             if conditional == 1 or conditional == -1:
                 possible.append(move)
+        
+        possible += self.canCastle(board)
+
+
 
         return possible
+    
 
 class Queen(Piece): 
     def __init__(self, location, isWhite):
@@ -207,6 +244,7 @@ class Rook(Piece):
             self.type = "♜"
         else: 
             self.type = "♖"
+        self.hasMoved = False
     def possibleMoves(self, board):       
         possible = [] 
         for i in [(0, 1), (0, -1), (1, 0), (-1, 0)]:
@@ -273,6 +311,10 @@ class Board():
                 for p in self.pieces:
                     if p.location == self.enPassant[1]:
                         self.pieces.remove(p)
+        elif  piece.__class__.__name__ == "King" or  piece.__class__.__name__ == "Rook":
+            if piece.hasMoved == False:
+                piece.hasMoved == True    
+
         
         self.doesWhitePlay = not self.doesWhitePlay
         piece.location = square
@@ -435,20 +477,12 @@ def FEN(fen, doesWhitePlay):
     
     
 
-myBoard = FEN("rnbqkbnr/ppppp3/8/8/8/8/PPPPPP1P/R1BQKBNR", True)
+myBoard = FEN("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/R6R", True)
+kingy = King((4, 0), True)
+myBoard.pieces.append(kingy)
 myBoard.draw()
-dicti = myBoard.possibleMoves()
-for piece in dicti: 
-    print(f"Piece: {piece.__class__.__name__} Moves: {dicti[piece]}")
+print(kingy.possibleMoves(myBoard))
 
-
-
-
-
-
-
-
-        
 
 #Simple eval function lol
 def evaluate(board):
@@ -461,10 +495,6 @@ def evaluate(board):
             eval -= piece.value
 
     return eval
-
-
-
-
 
 
 
@@ -515,6 +545,8 @@ def minimax(board, depth):
                     
 
     return best
+
+
 
 
                 
