@@ -619,14 +619,39 @@ def minimax(board, depth):
 
 
 
-myBoard = FEN("1nb1kbn1/ppppppp1/8/7r/3K1q2/7r/P7/R7", True)
-myBoard.draw()
-print(evaluate(myBoard))
-print(myBoard.possibleMoves())
 
 
+def bestMove(board, depth):
+    bestMove = None
+    bestEval = float('-inf') if board.doesWhitePlay else float('inf')
+    possible = board.possibleMoves()
+
+    if possible == "CHECKMATE" or possible == "STALEMATE":
+        return None
+
+    for piece in possible:
+        for move in possible[piece]:
+            board_copy = copy.deepcopy(board)
+            for p in board_copy.pieces:
+                if p.location == piece.location and p.isWhite == piece.isWhite and p.__class__ == piece.__class__:
+                    new_piece = p
+            board_copy.move(new_piece, move)
+            eval = minimax(board_copy, depth - 1)
+
+            if board.doesWhitePlay:
+                if eval > bestEval:
+                    bestEval = eval
+                    bestMove = (piece, move)
+            else:
+                if eval < bestEval:
+                    bestEval = eval
+                    bestMove = (piece, move)
+
+    return bestMove
                 
-   
+myBoard = FEN("4k3/8/8/8/7r/8/r7/2K5", False)
+myBoard.draw()
+print(bestMove(myBoard, 2))
         
     
 
