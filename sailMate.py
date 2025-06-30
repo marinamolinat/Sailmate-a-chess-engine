@@ -285,7 +285,8 @@ class Board():
         self.pieces = pieces
         self.doesWhitePlay = doesWhitePlay
         self.enPassant = [False, None] #Will store the pawn that can currently be captured ith enPessant, and the color of that square
-        self.checkMate = False 
+        self.checkMate = [False, None]
+        self.staleMate = False
 
     def move(self, piece, square):
         self.enPassant[0] = False
@@ -380,8 +381,12 @@ class Board():
     
     def checkOrStailMate(self):
         if self.isInCheck(self.doesWhitePlay):
+            self.checkMate[0] = True
+            self.checkMate[1] = not self.doesWhitePlay
             return "CHECKMATE"
+        
         else:
+            self.staleMate = True
             return "STALEMATE"
     
     #Return a dictionary with the piece object, and a list where such piece can move
@@ -532,6 +537,10 @@ def evaluate(board):
             eval += piece.value
         else:
             eval -= piece.value
+    board.checkOrStailMate()
+    if board.checkMate[0]:
+
+        eval = 1000 if board.checkMate[1] else -1000
 
     return eval
 
@@ -610,10 +619,11 @@ def minimax(board, depth):
 
 
 
-myBoard = FEN("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR", True)
+myBoard = FEN("1nb1kbn1/ppppppp1/8/7r/3K1q2/7r/P7/R7", True)
 myBoard.draw()
 print(evaluate(myBoard))
-print(minimax(myBoard, 2))
+print(myBoard.possibleMoves())
+
 
                 
    
