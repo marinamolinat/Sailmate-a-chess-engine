@@ -26,10 +26,10 @@ class Pawn(Piece):
             self.hasMoved = True
 
         if isWhite: 
-            self.type = "♟"
+            self.ascii = "♟"
             self.direction = 1
         else: 
-            self.type = "♙"
+            self.ascii = "♙"
             self.direction = -1
     
     def possibleMovesAttacking(self, board):  #only squares that are attacked
@@ -85,9 +85,9 @@ class Knight(Piece):
         super().__init__(location, isWhite)   
         self.value = 3
         if isWhite: 
-            self.type = "♞"
+            self.ascii = "♞"
         else: 
-            self.type = "♘"   
+            self.ascii = "♘"   
     def possibleMoves(self, board):
         possible = []
         map = [(2, 1),(-2, 1), (2, -1), (-2, -1), (1, 2), (-1, 2), (1, -2), (-1, -2)]
@@ -107,9 +107,9 @@ class Bishop(Piece):
         super().__init__(location, isWhite)
         self.value = 3.5
         if isWhite: 
-            self.type = "♝"
+            self.ascii = "♝"
         else: 
-            self.type = "♗" 
+            self.ascii = "♗" 
     def possibleMoves(self, board):
         possible = [] 
 
@@ -136,10 +136,10 @@ class King(Piece):
         super().__init__(location, isWhite)
         self.value = 100000
         if isWhite: 
-            self.type = "♚"
+            self.ascii = "♚"
             self.hasMoved = False if location == (4, 0) else True
         else: 
-            self.type = "♔" 
+            self.ascii = "♔" 
             self.hasMoved = False if location == (4, 7) else True
   
     
@@ -210,9 +210,9 @@ class Queen(Piece):
         self.value = 9
         super().__init__(location, isWhite)
         if isWhite: 
-            self.type = "♛"
+            self.ascii = "♛"
         else: 
-            self.type = "♕"
+            self.ascii = "♕"
     def possibleMoves(self, board):
         # This just borrows code from the rook and bishop
 
@@ -253,9 +253,9 @@ class Rook(Piece):
         super().__init__(location, isWhite)   
         self.value = 5
         if isWhite: 
-            self.type = "♜"
+            self.ascii = "♜"
         else: 
-            self.type = "♖"
+            self.ascii = "♖"
         self.hasMoved = False
     def possibleMoves(self, board):       
         possible = [] 
@@ -367,7 +367,7 @@ class Board():
                 board[i].append("[ ]")
                 
         for piece in self.pieces:
-            board[piece.location[0]][piece.location[1]] = f"[{piece.type}]"
+            board[piece.location[0]][piece.location[1]] = f"[{piece.ascii}]"
         
 
         #Now, draw:
