@@ -649,9 +649,9 @@ def bestMove(board, depth):
 
     return bestMove
                 
-myBoard = FEN("4k3/8/8/8/7r/8/r7/2K5", False)
+myBoard = FEN("4k3/8/8/8/7r/r7/4K3/8", False)
 myBoard.draw()
-print(bestMove(myBoard, 2))
+
         
     
 
