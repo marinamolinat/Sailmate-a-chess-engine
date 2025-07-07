@@ -7,7 +7,7 @@ class Piece():
         self.isWhite = isWhite
 
 
-    def possibleMoves(self, pieces, board):
+    def possibleMoves(self, board):
         raise NotImplementedError("Must be implemented by the subclass") 
     
    
@@ -32,21 +32,18 @@ class Pawn(Piece):
             self.ascii = "♙"
             self.direction = -1
     
-    def possibleMovesAttacking(self, board):  #only squares that are attacked
+    def possibleMovesAttacking(self, board):  #only squares that are attacked, useful for checks
         attacking = []
 
-        attacking.append(self.location[0] + 1 , self.location[1] + self.direction)
-        attacking.append(self.location[0] - 1 , self.location[1] + self.direction)
-
+        attacking.append((self.location[0] + 1 , self.location[1] + self.direction))
+        attacking.append((self.location[0] - 1 , self.location[1] + self.direction))
 
         return attacking
-
     
 
     def possibleMoves(self, board): 
 
         possible = [] 
-
 
         #Scan y+1
         move = ((self.location[0]), (self.location[1] + self.direction))
@@ -75,8 +72,6 @@ class Pawn(Piece):
         if (board.enPassant[0] == True) and (board.enPassant[1] == (self.location[0] + 1, self.location[1]) or board.enPassant[1] == (self.location[0] -1, self.location[1])):
             possible.append("enPassant")
 
-
-    
         return possible
             
 
@@ -85,10 +80,12 @@ class Knight(Piece):
     def __init__(self, location, isWhite):
         super().__init__(location, isWhite)   
         self.value = 3
+
         if isWhite: 
             self.ascii = "♞"
         else: 
             self.ascii = "♘"   
+        
     def possibleMoves(self, board):
         possible = []
         map = [(2, 1),(-2, 1), (2, -1), (-2, -1), (1, 2), (-1, 2), (1, -2), (-1, -2)]
@@ -135,7 +132,7 @@ class Bishop(Piece):
 class King(Piece):
     def __init__(self, location, isWhite):
         super().__init__(location, isWhite)
-        self.value = 100000
+        self.value = 1000
         if isWhite: 
             self.ascii = "♚"
             self.hasMoved = False if location == (4, 0) else True
@@ -145,8 +142,7 @@ class King(Piece):
   
     
     def attackingSquares(self, board):
-        #Really shitty king that doesnt understand that can put itself into checkmate
-
+        
         squares = []
         map = [(0, 1),(0, -1), (1, 1), (1, -1), (-1, 1), (-1, -1), (1, 0), (-1, 0)]
         for i in map:
@@ -174,7 +170,6 @@ class King(Piece):
 
         ]
     
-
         
         #Loop through both types of castling (i.e 2 times)
         for castlingType in importantSquares:
@@ -278,9 +273,6 @@ class Rook(Piece):
 
 
 
-        
-##Might do a board class, instead of an array of pieces
-
 class Board(): 
     def __init__(self, pieces, doesWhitePlay):
         self.pieces = pieces
@@ -290,11 +282,24 @@ class Board():
         self.staleMate = False
 
     def move(self, piece, square):
+
+        previousState = {
+        "piece": piece, 
+        "pieceLocation": piece.location,
+        "capturedPiece": None,
+        "enPassant": self.enPassant[:], 
+        "hasMoved": piece.hasMoved if hasattr(piece, "hasMoved") else None, 
+        "promotion": [False, None], # promotion[1] will store the queen
+        "castle": [False, None, None] # castle[1] will store the rook that moved, castle[2] the type of castling
+    }
+
+
         self.enPassant[0] = False
 
         #Check if a piece has been captured, and removes it in the case
         for p in self.pieces:
             if p.location == square:
+                previousState["capturedPiece"] = p
                 self.pieces.remove(p)
 
         if piece.__class__.__name__ == "Pawn":
@@ -308,12 +313,15 @@ class Board():
                     self.enPassant[0] = True
 
             elif square[1] == 0 or square[1] == 7:
+                previousState["promotion"][0] = True
+
                 new = Queen(square, piece.isWhite)
 
                 for p in self.pieces:
                     if p.location == piece.location and p.isWhite == piece.isWhite and p.__class__ == piece.__class__:
                         self.pieces.remove(p)
-                
+
+                previousState["promotion"][1] = new
                 self.pieces.append(new)
 
             elif square == "enPassant":
@@ -324,13 +332,17 @@ class Board():
                 #Removing the other pawn
                 for p in self.pieces:
                     if p.location == self.enPassant[1]:
+                        previousState["capturedPiece"] = p
                         self.pieces.remove(p)
+
 
         elif  piece.__class__.__name__ == "King" or  piece.__class__.__name__ == "Rook": 
             if piece.hasMoved == False:
                 piece.hasMoved = True  
 
             if square == "0-0":
+
+
                 y = 0 if piece.isWhite else 7
 
                 square = (6, y)
@@ -339,6 +351,11 @@ class Board():
                 for p in self.pieces:
                     if p.location == (7, y):
                         p.location = (5, y)
+                        previousState["castle"][1] = p
+
+                previousState["castle"][0] = True
+                
+                previousState["castle"][2] = "0-0"
 
             elif square == "0-0-0":
                 y = 0 if piece.isWhite else 7
@@ -349,16 +366,52 @@ class Board():
                 for p in self.pieces:
                     if p.location == (0, y):
                         p.location = (3, y)
+                        previousState["castle"][1] = p
+
+                previousState["castle"][0] = True
+                
+                previousState["castle"][2] = "0-0-0"
 
 
 
                 
         self.doesWhitePlay = not self.doesWhitePlay
         piece.location = square
+        return previousState
+
+    def undoMove(self, previousState):
+        piece = previousState["piece"]
+        
+        if previousState["hasMoved"] != None:
+            piece.hasMoved = previousState["hasMoved"]
+        if previousState["capturedPiece"]:
+            self.pieces.append(previousState["capturedPiece"])
+        
+        if previousState["promotion"][0]:
+            #Remove the queen
+            self.pieces.remove(previousState["promotion"][1])
+
+            self.pieces.append(piece)
+        
+        if previousState["castle"][0]:
+            y = 0 if piece.isWhite else 7
+            if previousState["castle"][2] == "0-0":
+                #Returning rook to proper place
+                previousState["castle"][1].location = (7, y)
+                previousState["castle"][1].hasMoved = False
+
+            else: #Long castle
+                #Returning rook to proper place
+                previousState["castle"][1].location = (0, y)
+                previousState["castle"][1].hasMoved = False
 
 
-    
-             
+
+
+        self.enPassant = previousState["enPassant"]
+        self.doesWhitePlay = not self.doesWhitePlay
+        piece.location = previousState["pieceLocation"]
+        
 
     def draw(self): 
         board = []
@@ -380,7 +433,7 @@ class Board():
         print("   0  1  2  3  4  5  6  7 ")
 
     
-    def checkOrStailMate(self):
+    def checkOrStailMate(self): #this method works to assist the possibleMoved method. PLEASE do not use it indepently
         if self.isInCheck(self.doesWhitePlay):
             self.checkMate[0] = True
             self.checkMate[1] = not self.doesWhitePlay
@@ -395,26 +448,23 @@ class Board():
         legalMoves = False
 
         possible = {}
-
-        for piece in self.pieces:
+        pieces = self.pieces[:]
+        
+        for piece in pieces:
             moves =  []
             if piece.isWhite == self.doesWhitePlay:
                 for move in piece.possibleMoves(self):
-                    board_copy = copy.deepcopy(self)
-                    pCopy = None
-                   
 
-                    #I need to find the piece in the deep copy :/
-                    for p in board_copy.pieces:
-                        if p.location == piece.location:
-                            pCopy = p
-                             
-
-                    board_copy.move(pCopy, move)
-
-                    if not board_copy.isInCheck(self.doesWhitePlay):
+                    previousState = self.move(piece, move)
+                    
+                    if not self.isInCheck(not self.doesWhitePlay):
                         moves.append(move)
                         legalMoves = True
+
+                    self.undoMove(previousState)
+                    
+            else: 
+                continue
 
             possible[piece] = moves
     
@@ -465,13 +515,14 @@ class Board():
         attackedSquares = []
 
         for p in self.pieces:
-            if not p.isWhite == isWhite:
+            if p.isWhite != isWhite:
                     if p.__class__.__name__ == "Pawn":
                         attackedSquares += p.possibleMovesAttacking(self)
                     elif p.__class__.__name__ == "King":
                         attackedSquares += p.attackingSquares(self)
                     else:
                         attackedSquares += p.possibleMoves(self)
+        
         return attackedSquares
 
 
@@ -557,14 +608,12 @@ def amountOfMoves(board, depth):
 
     for piece in possible:
         for move in possible[piece]:
-            board_copy = copy.deepcopy(board)
-            board_copy.enPassant = copy.deepcopy(board.enPassant)
 
-            for p in board_copy.pieces:
-                if p.location == piece.location and p.isWhite == piece.isWhite and p.__class__ == piece.__class__:
-                    new_piece = p
-            board_copy.move(new_piece, move)
-            total += amountOfMoves(board_copy, depth-1)
+            previousMove = board.move(piece, move)
+
+            total += amountOfMoves(board, depth-1)
+
+            board.undoMove(previousMove)
 
     return total
 
@@ -650,8 +699,7 @@ def bestMove(board, depth):
 
     return bestMove
                 
-myBoard = FEN("4k3/8/8/8/7r/r7/4K3/8", False)
-myBoard.draw()
+
 
         
     
