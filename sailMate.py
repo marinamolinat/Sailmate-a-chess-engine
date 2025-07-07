@@ -33,19 +33,13 @@ class Pawn(Piece):
             self.direction = -1
     
     def possibleMovesAttacking(self, board):  #only squares that are attacked
-        possible = []
+        attacking = []
 
-         #Scan diagonal capturing, towards right
-        move = (self.location[0] + 1 , self.location[1] + self.direction)
-        if board.scan(move, self.isWhite) == -1:
-            possible.append(move)
-        
-        #Scan diagonal capturing, towards left
-        move = (self.location[0] - 1 , self.location[1] + self.direction)
-        if board.scan(move, self.isWhite) == -1:
-            possible.append(move)
-    
-        return possible
+        attacking.append(self.location[0] + 1 , self.location[1] + self.direction)
+        attacking.append(self.location[0] - 1 , self.location[1] + self.direction)
+
+
+        return attacking
 
     
 
@@ -54,7 +48,6 @@ class Pawn(Piece):
         possible = [] 
 
 
-        
         #Scan y+1
         move = ((self.location[0]), (self.location[1] + self.direction))
         if board.scan(move, self.isWhite) == 1:
@@ -66,8 +59,16 @@ class Pawn(Piece):
             if board.scan(move, self.isWhite) == 1 and board.scan((move[0], move[1] + self.direction * -1), self.isWhite) == 1:
                 possible.append("doubleMove") #This is done to account for en Passant
 
-        possible += self.possibleMovesAttacking(board)
 
+        #Scan diagonal capturing, towards right
+        move = (self.location[0] + 1 , self.location[1] + self.direction)
+        if board.scan(move, self.isWhite) == -1:
+            possible.append(move)
+        
+        #Scan diagonal capturing, towards left
+        move = (self.location[0] - 1 , self.location[1] + self.direction)
+        if board.scan(move, self.isWhite) == -1:
+            possible.append(move)
 
 
         #En passant
