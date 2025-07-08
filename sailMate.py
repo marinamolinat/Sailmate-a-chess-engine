@@ -1,4 +1,4 @@
-import copy
+
 
 class Piece():
 
@@ -278,7 +278,7 @@ class Board():
         self.pieces = pieces
         self.doesWhitePlay = doesWhitePlay
         self.enPassant = [False, None] #Will store the pawn that can currently be captured ith enPessant, and the color of that square
-        self.checkMate = [False, None]
+        self.checkMate = [False, None] # # checkMate[1] will store the color piece that is in checkmate
         self.staleMate = False
 
     def move(self, piece, square):
@@ -442,7 +442,7 @@ class Board():
     def checkOrStailMate(self): #this method works to assist the possibleMoved method. PLEASE do not use it indepently
         if self.isInCheck(self.doesWhitePlay):
             self.checkMate[0] = True
-            self.checkMate[1] = not self.doesWhitePlay
+            self.checkMate[1] = self.doesWhitePlay
             return "CHECKMATE"
         
         else:
@@ -508,9 +508,13 @@ class Board():
         for p in self.pieces:
             if  p.__class__.__name__ == "King" and p.isWhite == isWhite:
                 king = p
+                
                 break
         
         attackedSquares = self.attackingSquares(isWhite)
+        if king is None:
+            print(f"[DEBUG] No king found for {'White' if isWhite else 'Black'}!")
+
 
         if king.location in attackedSquares:
             return True
@@ -595,10 +599,14 @@ def evaluate(board, depth):
             eval += piece.value
         else:
             eval -= piece.value
-    board.checkOrStailMate()
+    
+   
+    possible = board.possibleMoves()
+    
     if board.checkMate[0]:
 
-        eval = 1000 + depth if board.checkMate[1] else -1000 - depth
+        eval = -1000 - depth if board.checkMate[1] else 1000 + depth
+        
 
     return eval
 
@@ -632,6 +640,7 @@ def minimax(board, depth):
 
 
     possible = board.possibleMoves()
+
     if depth == 0 or possible == "CHECKMATE" or possible == "STALEMATE":
         return evaluate(board, depth)
     
@@ -676,12 +685,10 @@ def bestMove(board, depth):
 
     for piece in possible:
         for move in possible[piece]:
-            board_copy = copy.deepcopy(board)
-            for p in board_copy.pieces:
-                if p.location == piece.location and p.isWhite == piece.isWhite and p.__class__ == piece.__class__:
-                    new_piece = p
-            board_copy.move(new_piece, move)
-            eval = minimax(board_copy, depth - 1)
+            lastMove = board.move(piece, move)
+            eval = minimax(board, depth - 1)
+            board.undoMove(lastMove)
+            
 
             if board.doesWhitePlay:
                 if eval > bestEval:
@@ -694,10 +701,12 @@ def bestMove(board, depth):
 
     return bestMove
                 
-myBoard = FEN("kbK5/pp6/1P6/8/8/8/8/R7", True)  
+myBoard = FEN("8/8/r7/3Q4/8/3k4/8/3K4", True)  
 myBoard.draw()
-print(bestMove(myBoard, 3))
-    
+bestMove = bestMove(myBoard, 3)
+print(f"Best move: {bestMove}")
+
+
 
 
 
