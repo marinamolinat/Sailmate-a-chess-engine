@@ -290,7 +290,10 @@ class Board():
         "enPassant": self.enPassant[:], 
         "hasMoved": piece.hasMoved if hasattr(piece, "hasMoved") else None, 
         "promotion": [False, None], # promotion[1] will store the queen
-        "castle": [False, None, None] # castle[1] will store the rook that moved, castle[2] the type of castling
+        "castle": [False, None, None],  # castle[1] will store the rook that moved, castle[2] the type of castling
+        "checkMate": self.checkMate[:], 
+        "staleMate": self.staleMate
+
     }
 
 
@@ -381,6 +384,9 @@ class Board():
 
     def undoMove(self, previousState):
         piece = previousState["piece"]
+
+        self.checkMate = previousState["checkMate"]
+        self.staleMate = previousState["staleMate"]
         
         if previousState["hasMoved"] != None:
             piece.hasMoved = previousState["hasMoved"]
@@ -581,7 +587,7 @@ def FEN(fen, doesWhitePlay):
 
 
 #Simple eval function lol
-def evaluate(board):
+def evaluate(board, depth):
     eval = 0
     
     for piece in board.pieces:
@@ -592,7 +598,7 @@ def evaluate(board):
     board.checkOrStailMate()
     if board.checkMate[0]:
 
-        eval = 1000 if board.checkMate[1] else -1000
+        eval = 1000 + depth if board.checkMate[1] else -1000 - depth
 
     return eval
 
@@ -627,21 +633,16 @@ def minimax(board, depth):
 
     possible = board.possibleMoves()
     if depth == 0 or possible == "CHECKMATE" or possible == "STALEMATE":
-        return evaluate(board)
+        return evaluate(board, depth)
     
     if board.doesWhitePlay:
         best = -1000
 
         for piece in possible:
             for move in possible[piece]:
-                board_copy = copy.deepcopy(board)
-
-                for p in board_copy.pieces:
-                    if p.location == piece.location and p.isWhite == piece.isWhite and p.__class__ == piece.__class__:
-                        new_piece = p
-                
-                board_copy.move(new_piece, move)
-                score = minimax(board_copy, depth-1)
+                lastMove = board.move(piece, move)
+                score = minimax(board, depth-1)
+                board.undoMove(lastMove)
                 if score > best:
                     best = score    
               
@@ -651,19 +652,13 @@ def minimax(board, depth):
 
         for piece in possible:
             for move in possible[piece]:
-                board_copy = copy.deepcopy(board)
-
-                for p in board_copy.pieces:
-                    if p.location == piece.location and p.isWhite == piece.isWhite and p.__class__ == piece.__class__:
-                        new_piece = p
-
-                board_copy.move(new_piece, move)
-                score = minimax(board_copy, depth-1)
+                lastMove = board.move(piece, move)
+                score = minimax(board, depth-1)
+                board.undoMove(lastMove)
                 if score < best:
                     best = score    
 
             
-                    
 
     return best
 
@@ -699,11 +694,10 @@ def bestMove(board, depth):
 
     return bestMove
                 
-
-
-        
+myBoard = FEN("kbK5/pp6/1P6/8/8/8/8/R7", True)  
+myBoard.draw()
+print(bestMove(myBoard, 3))
     
-
 
 
 
