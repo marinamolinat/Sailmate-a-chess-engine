@@ -762,6 +762,10 @@ def play():
     
             moved = False
             possible = myBoard.possibleMoves()
+            if possible == "CHECKMATE" or possible == "STALEMATE":
+                print("Game over!, its a {possible}!")
+                print("I WIN MUAHAHAH")
+                return
             #search for piece
             for p in possible:
                 for m in possible[p]: #for move in piece
@@ -779,7 +783,13 @@ def play():
         else:
             print("AI's turn to play!")
             move = bestMove(myBoard, int(depth) if depth.isdigit() else 3)
+            if move is None:
+                print(f"Wait... Game over!,{myBoard.checkOrStailMate()}!")
+                if myBoard.checkOrStailMate() == "CHECKMATE":
+                    print("YU HAVE WON")
+                return
             myBoard.move(move[0], move[1])
+
 
 play()
 
