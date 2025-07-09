@@ -733,14 +733,55 @@ def bestMove(board, depth):
 
     return bestMove
                 
-myBoard = FEN("r2q1rk1/1b1pbppp/p3p3/1pp3B1/3nn3/P1NP3P/BPP2PPN/R2Q1RK1", True)  
-myBoard.draw()
-bestMove = bestMove(myBoard, 4)
-print(f"Best move: {bestMove}")
 
 
 
 
+def play():
+    myBoard = FEN("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR", True) 
+    print("Welcome to SailMate!, lets play some chess!") 
+    depth = input("Please enter the depth of the AI (default is 3), more and it becomes far to slow: ")
+
+    playerColor = input("Do you want to play as white or black? (w/b): ").lower()
+    playerColor = True if playerColor == "w" else False
+    print(f"You are playing as {'White' if playerColor else 'Black'}")
+
+
+
+
+    while True:
+        myBoard.draw()
+        if playerColor == myBoard.doesWhitePlay:
+            print("Your turn to play!")
+            for piece in myBoard.possibleMoves():
+                print(f"{piece.ascii} at {piece.location} to {myBoard.possibleMoves()[piece]}")
+            movePiece = input("Enter the ascii character of the piece you want to move: ")
+            moveOrLocation = input("Enter the CURRENT location of the piece you want to move (e.g. (0, 1) ): ")
+            moveLocation = input("Enter the location you want to move the piece to (e.g. (0, 1) or doubleMove or 0-0): ")
+
+    
+            moved = False
+            possible = myBoard.possibleMoves()
+            #search for piece
+            for p in possible:
+                for m in possible[p]: #for move in piece
+
+                    if p.ascii == movePiece and str(p.location) == moveOrLocation and str(m) == moveLocation:
+                        #doable move
+                        myBoard.move(p, m)
+                        print("Perfect, your move was successful!")
+                        moved = True
+            if not moved: 
+                print("Invalid move, try again!")
+                continue 
+            
+            
+        else:
+            print("AI's turn to play!")
+            move = bestMove(myBoard, int(depth) if depth.isdigit() else 3)
+            myBoard.move(move[0], move[1])
+
+play()
 
 
 
