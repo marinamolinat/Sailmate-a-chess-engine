@@ -633,7 +633,39 @@ def amountOfMoves(board, depth):
 
 
 
+def minimaxImproved(board, depth, alpha=-1000, beta=1000):
+    possible = board.possibleMoves()
 
+    if depth == 0 or possible == "CHECKMATE" or possible == "STALEMATE":
+        return evaluate(board, depth)
+
+    if board.doesWhitePlay:
+        best = -1000
+        for piece in possible:
+            for move in possible[piece]:
+                lastMove = board.move(piece, move)
+                score = minimaxImproved(board, depth - 1, alpha, beta)
+                board.undoMove(lastMove)
+
+                best = max(best, score)
+                alpha = max(alpha, score)
+                if beta <= alpha:
+                    return best  # Beta cut-off
+        return best
+
+    else:
+        best = 1000
+        for piece in possible:
+            for move in possible[piece]:
+                lastMove = board.move(piece, move)
+                score = minimaxImproved(board, depth - 1, alpha, beta)
+                board.undoMove(lastMove)
+
+                best = min(best, score)
+                beta = min(beta, score)
+                if beta <= alpha:
+                    return best  # Alpha cut-off
+        return best
 
 #MINIMAX
 def minimax(board, depth):
@@ -686,7 +718,7 @@ def bestMove(board, depth):
     for piece in possible:
         for move in possible[piece]:
             lastMove = board.move(piece, move)
-            eval = minimax(board, depth - 1)
+            eval = minimaxImproved(board, depth - 1)
             board.undoMove(lastMove)
             
 
@@ -701,10 +733,11 @@ def bestMove(board, depth):
 
     return bestMove
                 
-myBoard = FEN("8/8/r7/3Q4/8/3k4/8/3K4", True)  
+myBoard = FEN("r2q1rk1/1b1pbppp/p3p3/1pp3B1/3nn3/P1NP3P/BPP2PPN/R2Q1RK1", True)  
 myBoard.draw()
-bestMove = bestMove(myBoard, 3)
+bestMove = bestMove(myBoard, 4)
 print(f"Best move: {bestMove}")
+
 
 
 
