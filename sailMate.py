@@ -18,7 +18,15 @@ class Pawn(Piece):
     def __init__(self, location, isWhite):
         super().__init__(location, isWhite)  
 
-        self.value = 1
+        self.value = 100
+        self.table = [ 0,  0,  0,  0,  0,  0,  0,  0,
+        50, 50, 50, 50, 50, 50, 50, 50,
+        10, 10, 20, 30, 30, 20, 10, 10,
+        5,  5, 10, 35, 35, 10,  5,  5,
+        0,  0,  0, 30, 30,  0,  0,  0,
+        5, -5,-10,  0,  0,-10, -5,  5,
+        5, 10, 10,-20,-20, 10, 10,  5,
+        0,  0,  0,  0,  0,  0,  0,  0]
 
         if (location[1] == 1 and isWhite) or (location[1] == 6 and not isWhite):
             self.hasMoved = False
@@ -79,7 +87,15 @@ class Pawn(Piece):
 class Knight(Piece): 
     def __init__(self, location, isWhite):
         super().__init__(location, isWhite)   
-        self.value = 3
+        self.value = 320
+        self.table = [-50,-40,-30,-30,-30,-30,-40,-50,
+-40,-20,  0,  0,  0,  0,-20,-40,
+-30,  0, 10, 15, 15, 10,  0,-30,
+-30,  5, 15, 20, 20, 15,  5,-30,
+-30,  0, 15, 20, 20, 15,  0,-30,
+-30,  5, 10, 15, 15, 10,  5,-30,
+-40,-20,  0,  5,  5,  0,-20,-40,
+-50,-40,-30,-30,-30,-30,-40,-50]
 
         if isWhite: 
             self.ascii = "♞"
@@ -103,7 +119,16 @@ class Knight(Piece):
 class Bishop(Piece):
     def __init__(self, location, isWhite):
         super().__init__(location, isWhite)
-        self.value = 3.5
+        self.table = [-20,-10,-10,-10,-10,-10,-10,-20,
+        -10,  0,  0,  0,  0,  0,  0,-10,
+        -10,  0,  5, 10, 10,  5,  0,-10,
+        -10,  5,  5, 10, 10,  5,  5,-10,
+        -10,  0, 10, 10, 10, 10,  0,-10,
+        -10, 10, 10, 10, 10, 10, 10,-10,
+        -10,  5,  0,  0,  0,  0,  5,-10,
+        -20,-10,-10,-10,-10,-10,-10,-20]
+        
+        self.value = 330
         if isWhite: 
             self.ascii = "♝"
         else: 
@@ -132,7 +157,15 @@ class Bishop(Piece):
 class King(Piece):
     def __init__(self, location, isWhite):
         super().__init__(location, isWhite)
-        self.value = 1000
+        self.value = 20000
+        self.table = [-30,-40,-40,-50,-50,-40,-40,-30,
+-30,-40,-40,-50,-50,-40,-40,-30,
+-30,-40,-40,-50,-50,-40,-40,-30,
+-30,-40,-40,-50,-50,-40,-40,-30,
+-20,-30,-30,-40,-40,-30,-30,-20,
+-10,-20,-20,-20,-20,-20,-20,-10,
+ 20, 20,  0,  0,  0,  0, 20, 20,
+ 20, 30, 10,  0,  0, 10, 30, 20]
         if isWhite: 
             self.ascii = "♚"
             self.hasMoved = False if location == (4, 0) else True
@@ -154,6 +187,7 @@ class King(Piece):
 
     #Currently, this is so disguting. I swear ill fix it soon enough
     def canCastle(self, board):
+
        
         castles = []
         squares = board.attackingSquares(self.isWhite)
@@ -203,7 +237,15 @@ class King(Piece):
         
 class Queen(Piece): 
     def __init__(self, location, isWhite):
-        self.value = 9
+        self.value = 900
+        self.table = [-20,-10,-10, -5, -5,-10,-10,-20,
+-10,  0,  0,  0,  0,  0,  0,-10,
+-10,  0,  5,  5,  5,  5,  0,-10,
+ -5,  0,  5,  5,  5,  5,  0, -5,
+  0,  0,  5,  5,  5,  5,  0, -5,
+-10,  5,  5,  5,  5,  5,  0,-10,
+-10,  0,  5,  0,  0,  0,  0,-10,
+-20,-10,-10, -5, -5,-10,-10,-20]
         super().__init__(location, isWhite)
         if isWhite: 
             self.ascii = "♛"
@@ -247,7 +289,15 @@ class Queen(Piece):
 class Rook(Piece): 
     def __init__(self, location, isWhite):
         super().__init__(location, isWhite)   
-        self.value = 5
+        self.value = 500
+        self.table = [0,  0,  0,  0,  0,  0,  0,  0,
+  5, 10, 10, 10, 10, 10, 10,  5,
+ -5,  0,  0,  0,  0,  0,  0, -5,
+ -5,  0,  0,  0,  0,  0,  0, -5,
+ -5,  0,  0,  0,  0,  0,  0, -5,
+ -5,  0,  0,  0,  0,  0,  0, -5,
+ -5,  0,  0,  0,  0,  0,  0, -5,
+  0,  0,  0,  5,  5,  0,  0,  0]
         if isWhite: 
             self.ascii = "♜"
         else: 
@@ -596,16 +646,21 @@ def evaluate(board, depth):
     
     for piece in board.pieces:
         if piece.isWhite:
+            index = piece.location[0] + ((7-(piece.location[1])) * 8)
             eval += piece.value
+            eval += piece.table[index]
+
         else:
+            index = piece.location[0] + piece.location[1] * 8 
             eval -= piece.value
-    
+            eval -= piece.table[index]
+
    
     possible = board.possibleMoves()
     
     if board.checkMate[0]:
 
-        eval = -1000 - depth if board.checkMate[1] else 1000 + depth
+        eval = -1000000 - depth*100 if board.checkMate[1] else 1000000 + depth*100
         
 
     return eval
@@ -789,6 +844,7 @@ def play():
                     print("YU HAVE WON")
                 return
             myBoard.move(move[0], move[1])
+
 
 
 play()
