@@ -790,7 +790,7 @@ def bestMove(board, depth):
 
 
 def play():
-    myBoard = FEN("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR", True) 
+    myBoard = FEN("2b4k/1pP5/p7/8/3K2P1/8/3p1r2/8", False) 
     print("Welcome to SailMate!, lets play some chess!") 
     depth = input("Please enter the depth of the AI (default is 2), more and it becomes quite slow: ")
     print(f"AI will play with a depth of {depth if depth.isdigit() else 2} moves ahead")
