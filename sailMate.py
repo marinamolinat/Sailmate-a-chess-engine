@@ -562,9 +562,6 @@ class Board():
                 break
         
         attackedSquares = self.attackingSquares(isWhite)
-        if king is None:
-            print(f"[DEBUG] No king found for {'White' if isWhite else 'Black'}!")
-
 
         if king.location in attackedSquares:
             return True
@@ -795,7 +792,8 @@ def bestMove(board, depth):
 def play():
     myBoard = FEN("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR", True) 
     print("Welcome to SailMate!, lets play some chess!") 
-    depth = input("Please enter the depth of the AI (default is 3), more and it becomes far to slow: ")
+    depth = input("Please enter the depth of the AI (default is 2), more and it becomes quite slow: ")
+    print(f"AI will play with a depth of {depth if depth.isdigit() else 2} moves ahead")
 
     playerColor = input("Do you want to play as white or black? (w/b): ").lower()
     playerColor = True if playerColor == "w" else False
@@ -810,11 +808,10 @@ def play():
             print("Your turn to play!")
             for piece in myBoard.possibleMoves():
                 print(f"{piece.ascii} at {piece.location} to {myBoard.possibleMoves()[piece]}")
-            movePiece = input("Enter the ascii character of the piece you want to move: ")
             moveOrLocation = input("Enter the CURRENT location of the piece you want to move (e.g. (0, 1) ): ")
-            moveLocation = input("Enter the location you want to move the piece to (e.g. (0, 1) or doubleMove or 0-0): ")
+            moveLocation = input("Enter the location or move you want to move the piece to (e.g. (0, 1) or doubleMove or 0-0): ")
 
-    
+
             moved = False
             possible = myBoard.possibleMoves()
             if possible == "CHECKMATE" or possible == "STALEMATE":
@@ -825,7 +822,7 @@ def play():
             for p in possible:
                 for m in possible[p]: #for move in piece
 
-                    if p.ascii == movePiece and str(p.location) == moveOrLocation and str(m) == moveLocation:
+                    if str(p.location) == moveOrLocation and str(m) == moveLocation:
                         #doable move
                         myBoard.move(p, m)
                         print("Perfect, your move was successful!")
@@ -836,8 +833,8 @@ def play():
             
             
         else:
-            print("AI's turn to play!")
-            move = bestMove(myBoard, int(depth) if depth.isdigit() else 3)
+            print("The IA is thinking...")
+            move = bestMove(myBoard, int(depth) if depth.isdigit() else 2)
             if move is None:
                 print(f"Wait... Game over!,{myBoard.checkOrStailMate()}!")
                 if myBoard.checkOrStailMate() == "CHECKMATE":
@@ -848,8 +845,6 @@ def play():
 
 
 play()
-
-
 
 
 
