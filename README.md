@@ -58,6 +58,7 @@ And **BOOM**, you'll be able to play against the SailMate engine
     *(All inherit from `Piece`)*
 
 * **`Board`** — Handles game state and possible move generation
+-It has multiple methods. .draw() will draw the current board state as ascii
 
 * **`FEN`** — Parses a simple FEN string into board state
 
@@ -81,6 +82,8 @@ And **BOOM**, you'll be able to play against the SailMate engine
   myBoard = sailMate.FEN("r1bqkbnr/pppp1ppp/2n5/4p3/3PP3/5N2/PPP2PPP/RNBQKB1R", False)
   # First parameter: simplified FEN string
   # Second parameter: who plays (True → White, False → Black)
+
+  myBoard.draw() #Will draw the board
   ```
 
 * **`evaluate()`** — Simple material-based evaluation
